@@ -188,17 +188,16 @@ public class CxWeibull {
      *                the source image
      * @return the calculated feature vector
      */
-    public static FeatureVector calculateFeatureVector(
-            ConvertableImage originalImage) {
-        RGB24Image image = originalImage.toRGB24();
+    public static FeatureVector calculateFeatureVector(ConvertableImage image) {
+        RGB24Image rgb24Image = image.toRGB24();
 
         if (!initialized) {
-            initialize(image.width, image.height);
+            initialize(rgb24Image.width, rgb24Image.height);
         }
 
         // Create CxArray2d from file image data
-        CxArray2dVec3Double input = new CxArray2dVec3Double(image.width,
-                image.height, CxConvert.toDoubles(image.pixels));
+        CxArray2dVec3Double input = new CxArray2dVec3Double(rgb24Image.width,
+                rgb24Image.height, CxConvert.toDoubles(rgb24Image.pixels));
 
         // Create all invariant images
         buildInvariantImages(input);
