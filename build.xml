@@ -8,6 +8,9 @@
 	<property name="distdir" value="./lib" />
 
 	<path id="default.classpath">
+		<fileset dir="external">
+			<include name="*.jar" />
+		</fileset>
 		<pathelement path="tmp" />
 	</path>
 
