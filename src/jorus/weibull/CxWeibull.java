@@ -10,12 +10,9 @@
 
 package jorus.weibull;
 
-import jorus.array.CxArray2dScalarDouble;
-import jorus.array.CxArray2dVec3Double;
+import jorus.array.CxArray2dDoubles;
 import jorus.array.CxConvert;
-import jorus.patterns.CxPatTask;
-import jorus.pixel.CxPixelScalarDouble;
-import jorus.pixel.CxPixelVec3Double;
+import jorus.pixel.CxPixelDouble;
 import jorus.util.ConvertableImage;
 import jorus.util.FeatureVector;
 import jorus.util.RGB24Image;
@@ -63,15 +60,15 @@ public class CxWeibull {
 
     private static int CLLR2 = 12;
 
-    private static CxArray2dScalarDouble Wx, W45, Wy, W135;
+    private static CxArray2dDoubles Wx, W45, Wy, W135;
 
-    private static CxArray2dScalarDouble Clx, Cl45, Cly, Cl135;
+    private static CxArray2dDoubles Clx, Cl45, Cly, Cl135;
 
-    private static CxArray2dScalarDouble Cllx, Cll45, Clly, Cll135;
+    private static CxArray2dDoubles Cllx, Cll45, Clly, Cll135;
 
-    private static CxArray2dScalarDouble Ex2Ey2 = null;
+    private static CxArray2dDoubles Ex2Ey2 = null;
 
-    private static CxArray2dScalarDouble[] rfIm = new CxArray2dScalarDouble[NR_RFIELDS];
+    private static CxArray2dDoubles[] rfIm = new CxArray2dDoubles[NR_RFIELDS];
 
     private static double[][][] histos;
 
@@ -133,7 +130,7 @@ public class CxWeibull {
         }
         NR_BINS = numberOfBins;
 
-        rfIm = new CxArray2dScalarDouble[NR_RFIELDS];
+        rfIm = new CxArray2dDoubles[NR_RFIELDS];
         histos = new double[NR_INVAR_IMS][NR_RFIELDS][NR_BINS];
         betas = new double[NR_INVAR_IMS][NR_RFIELDS];
         gammas = new double[NR_INVAR_IMS][NR_RFIELDS];
@@ -146,10 +143,10 @@ public class CxWeibull {
         int centerx = imageWidth / 2;
         int centery = imageHeight / 2;
 
-        CxArray2dScalarDouble pntIm = new CxArray2dScalarDouble(imageWidth,
-                imageHeight);
-        CxPixelScalarDouble zero = new CxPixelScalarDouble(new double[] { 0. });
-        CxPixelScalarDouble one = new CxPixelScalarDouble(new double[] { 1. });
+        CxArray2dDoubles pntIm = new CxArray2dDoubles(imageWidth,
+                imageHeight, 1);
+        CxPixelDouble zero = new CxPixelDouble(new double[] { 0. });
+        CxPixelDouble one = new CxPixelDouble(new double[] { 1. });
         pntIm.setVal(zero, true);
         pntIm.setSingleValue(one, centerx, centery, true);
         rfIm[0] = pntIm.gaussDerivative(sigma, 0, 0, 5.);
@@ -196,8 +193,8 @@ public class CxWeibull {
         }
 
         // Create CxArray2d from file image data
-        CxArray2dVec3Double input = new CxArray2dVec3Double(rgb24Image.width,
-                rgb24Image.height, CxConvert.toDoubles(rgb24Image.pixels));
+        CxArray2dDoubles input = new CxArray2dDoubles(rgb24Image.width,
+                rgb24Image.height, 3, CxConvert.toDoubles(rgb24Image.pixels));
 
         // Create all invariant images
         buildInvariantImages(input);
@@ -241,9 +238,9 @@ public class CxWeibull {
         }
 
         // Calculate all Weibull fits
-        CxWeibullFit fit = new CxWeibullFit();
+        CxWeibullFit fit = new CxWeibullFit(NR_RFIELDS, NR_INVAR_IMS);
         fit.init(new FitWeibull(), histos, betas, gammas, NR_BINS);
-        CxPatTask.dispatch(fit, NR_RFIELDS, NR_INVAR_IMS);
+        fit.dispatch();
 
         // Extract all final betas and gammas (ignore EX2EY2)
         double xxb, xyb, yyb;
@@ -331,72 +328,80 @@ public class CxWeibull {
 
     /** * Private Methods********************************************** */
 
-    private static void buildInvariantImages(CxArray2dVec3Double input) {
+    /**
+     * r
+     * @param input input image. Should have an extent of 1
+     */
+    private static void buildInvariantImages(CxArray2dDoubles input) {
+    	if(input.getExtent() != 1) {
+    		return; //FIXME error handling
+    	}
+    	
         double s = 1.0; // sigma
 
         // Convert to opponent color space (and stretch)
 
         input.convertRGB2OOO(true);
-        input.mulVal(new CxPixelVec3Double(new double[] { 255., 255., 255. }),
+        input.mulVal(new CxPixelDouble(new double[] { 255., 255., 255. }),
                 true);
 
-        CxArray2dScalarDouble plane = input.getPlane(0);
-        CxArray2dScalarDouble E = plane.gaussDerivative(s, 0, 0, 3.);
-        CxArray2dScalarDouble Ex = plane.gaussDerivative(s, 1, 0, 3.);
-        CxArray2dScalarDouble Ey = plane.gaussDerivative(s, 0, 1, 3.);
+        CxArray2dDoubles plane = input.getPlane(0);
+        CxArray2dDoubles E = plane.gaussDerivative(s, 0, 0, 3.);
+        CxArray2dDoubles Ex = plane.gaussDerivative(s, 1, 0, 3.);
+        CxArray2dDoubles Ey = plane.gaussDerivative(s, 0, 1, 3.);
 
         plane = input.getPlane(1);
-        CxArray2dScalarDouble El = plane.gaussDerivative(s, 0, 0, 3.);
-        CxArray2dScalarDouble Elx = plane.gaussDerivative(s, 1, 0, 3.);
-        CxArray2dScalarDouble Ely = plane.gaussDerivative(s, 0, 1, 3.);
+        CxArray2dDoubles El = plane.gaussDerivative(s, 0, 0, 3.);
+        CxArray2dDoubles Elx = plane.gaussDerivative(s, 1, 0, 3.);
+        CxArray2dDoubles Ely = plane.gaussDerivative(s, 0, 1, 3.);
 
         plane = input.getPlane(2);
-        CxArray2dScalarDouble Ell = plane.gaussDerivative(s, 0, 0, 3.);
-        CxArray2dScalarDouble Ellx = plane.gaussDerivative(s, 1, 0, 3.);
-        CxArray2dScalarDouble Elly = plane.gaussDerivative(s, 0, 1, 3.);
+        CxArray2dDoubles Ell = plane.gaussDerivative(s, 0, 0, 3.);
+        CxArray2dDoubles Ellx = plane.gaussDerivative(s, 1, 0, 3.);
+        CxArray2dDoubles Elly = plane.gaussDerivative(s, 0, 1, 3.);
 
         // Intensity contrast
 
-        Wx = (CxArray2dScalarDouble) Ex.div(E, false);
-        Wy = (CxArray2dScalarDouble) Ey.div(E, false);
-        W45 = (CxArray2dScalarDouble) Wx.add(Wy, false);
-        W135 = (CxArray2dScalarDouble) Wx.sub(Wy, false);
+        Wx = (CxArray2dDoubles) Ex.div(E, false);
+        Wy = (CxArray2dDoubles) Ey.div(E, false);
+        W45 = (CxArray2dDoubles) Wx.add(Wy, false);
+        W135 = (CxArray2dDoubles) Wx.sub(Wy, false);
 
         // Chromatic C invarient
 
-        CxArray2dScalarDouble E2;
+        CxArray2dDoubles E2;
 
-        E2 = (CxArray2dScalarDouble) E.mul(E, false);
-        Clx = (CxArray2dScalarDouble) El.mul(Ex, false);
+        E2 = (CxArray2dDoubles) E.mul(E, false);
+        Clx = (CxArray2dDoubles) El.mul(Ex, false);
         Elx.mul(E, true);
-        Clx = (CxArray2dScalarDouble) Elx.sub(Clx, false);
+        Clx = (CxArray2dDoubles) Elx.sub(Clx, false);
         Clx.div(E2, true);
 
-        Cly = (CxArray2dScalarDouble) El.mul(Ey, false);
+        Cly = (CxArray2dDoubles) El.mul(Ey, false);
         Ely.mul(E, true);
-        Cly = (CxArray2dScalarDouble) Ely.sub(Cly, false);
+        Cly = (CxArray2dDoubles) Ely.sub(Cly, false);
         Cly.div(E2, true);
 
-        Cllx = (CxArray2dScalarDouble) Ell.mul(Ex, false);
+        Cllx = (CxArray2dDoubles) Ell.mul(Ex, false);
         Ellx.mul(E, true);
-        Cllx = (CxArray2dScalarDouble) Ellx.sub(Cllx, false);
+        Cllx = (CxArray2dDoubles) Ellx.sub(Cllx, false);
         Cllx.div(E2, true);
 
-        Clly = (CxArray2dScalarDouble) Ell.mul(Ey, false);
+        Clly = (CxArray2dDoubles) Ell.mul(Ey, false);
         Elly.mul(E, true);
-        Clly = (CxArray2dScalarDouble) Elly.sub(Clly, false);
+        Clly = (CxArray2dDoubles) Elly.sub(Clly, false);
         Clly.div(E2, true);
 
-        Cl45 = (CxArray2dScalarDouble) Clx.add(Cly, false);
-        Cl135 = (CxArray2dScalarDouble) Clx.sub(Cly, false);
-        Cll45 = (CxArray2dScalarDouble) Cllx.add(Clly, false);
-        Cll135 = (CxArray2dScalarDouble) Cllx.sub(Clly, false);
+        Cl45 = (CxArray2dDoubles) Clx.add(Cly, false);
+        Cl135 = (CxArray2dDoubles) Clx.sub(Cly, false);
+        Cll45 = (CxArray2dDoubles) Cllx.add(Clly, false);
+        Cll135 = (CxArray2dDoubles) Cllx.sub(Clly, false);
 
         // Squared gradient
 
         Ex.mul(Ex, true);
         Ey.mul(Ey, true);
-        Ex2Ey2 = (CxArray2dScalarDouble) Ey.add(Ex, false);
+        Ex2Ey2 = (CxArray2dDoubles) Ey.add(Ex, false);
     }
 
 }

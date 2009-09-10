@@ -7,103 +7,189 @@
  *
  */
 
-
 package jorus.array;
 
-
-import jorus.operations.*;
-import jorus.patterns.*;
+import jorus.operations.bpo.CxBpoAddByte;
+import jorus.operations.bpo.CxBpoDivByte;
+import jorus.operations.bpo.CxBpoMulByte;
+import jorus.operations.bpo.CxBpoSubByte;
+import jorus.operations.svo.CxSvoSetByte;
+import jorus.operations.upo.CxUpoMulValByte;
+import jorus.operations.upo.CxUpoSetValByte;
 import jorus.pixel.*;
 
-
-public abstract class CxArray2dBytes extends CxArray2d<byte[]>
-{
+public class CxArray2dBytes extends CxArray2d<byte[]> {
 	/*** Public Methods ***********************************************/
+	public CxArray2dBytes(int width, int height, int extent) {
+		this(width, height, extent, null);
+	}
 
+	public CxArray2dBytes(int width, int height, int extent, byte[] array) {
+		this(width, height, 0, 0, extent, array);
+	}
 
-	public CxArray2dBytes(int w, int h,
-						  int bw, int bh, int e, byte[] array)
-	{
+	public CxArray2dBytes(int width, int height, int borderWidth,
+			int borderHeight, int extent, byte[] data) {
 		// Initialize
 
-		super(w, h, bw, bh, e, array);
+		super(width, height, borderWidth, borderHeight, extent, data);
 
 		// Create new array and copy values, ignoring border values
 
-		int fullw = w + 2*bw;
-		int fullh = h + 2*bh;
-		int start = (fullw*bh+bw)*e;
+		int fullWidth = width + 2 * borderWidth;
+		int fullHeight = height + 2 * borderHeight;
+		int start = (fullWidth * borderHeight + borderWidth) * extent;
 
-		byte[] newarray = new byte[fullw*fullh*e];
+		byte[] newArray = new byte[fullWidth * fullHeight * extent];
 
-		if (data != null) {
-			for (int j=0; j<h; j++) {
-				for (int i=0; i<w*e; i++) {
-					newarray[start + j*fullw*e + i] = data[j*w*e+i];
+		if (this.data != null) {
+			for (int j = 0; j < height; j++) {
+				for (int i = 0; i < width * extent; i++) {
+					newArray[start + j * fullWidth * extent + i] = this.data[j
+							* width * extent + i];
 				}
 			}
 		}
-		data = newarray;
-		type = data.getClass().getComponentType();
-		gstate = VALID;
+		this.data = newArray;
+		globalState = VALID;
 	}
-
 
 	/*** Single Pixel (Value) Operations ******************************/
-
-	public CxArray2d setSingleValue(CxPixel p,
-									int xidx, int yidx, boolean inpl)
-	{
-		if (!equalExtent(p)) return null;
-		return CxPatSvo.dispatch(this, xidx, yidx, inpl,
-							new CxSvoSetByte((byte[])p.getValue()));
+	@Override
+	public CxArray2d<byte[]> setSingleValue(CxPixel<byte[]> pixel, int xIndex,
+			int yIndex, boolean inplace) {
+		if (!equalExtent(pixel))
+			return null;
+		return new CxSvoSetByte(this, xIndex, yIndex, inplace, pixel.getValue())
+				.dispatch();
 	}
-
 
 	/*** Unary Pixel Operations ***************************************/
-
-	public CxArray2d setVal(CxPixel p, boolean inpl)
-	{
-		if (!equalExtent(p)) return null;
-		return CxPatUpo.dispatch(this, inpl,
-							new CxUpoSetValByte((byte[])p.getValue()));
+	@Override
+	public CxArray2d<byte[]> setVal(CxPixel<byte[]> pixel, boolean inplace) {
+		if (!equalExtent(pixel))
+			return null;
+		return new CxUpoSetValByte(this, inplace, pixel.getValue()).dispatch();
 	}
 
-
-	public CxArray2d mulVal(CxPixel p, boolean inpl)
-	{
-		if (!equalExtent(p)) return null;
-		return CxPatUpo.dispatch(this, inpl,
-							new CxUpoMulValByte((byte[])p.getValue()));
+	@Override
+	public CxArray2d<byte[]> mulVal(CxPixel<byte[]> pixel, boolean inplace) {
+		if (!equalExtent(pixel))
+			return null;
+		return new CxUpoMulValByte(this, inplace, pixel.getValue()).dispatch();
 	}
-
 
 	/*** Binary Pixel Operations **************************************/
 
-	public CxArray2d add(CxArray2d a, boolean inpl)
-	{
-		if (!equalSignature(a)) return null;
-		return CxPatBpo.dispatch(this, a, inpl, new CxBpoAddByte());
+	@Override
+	public CxArray2d<byte[]> add(CxArray2d<byte[]> array, boolean inplace) {
+		if (!equalSignature(array))
+			return null;
+		return new CxBpoAddByte(this, array, inplace).dispatch();
 	}
 
-
-	public CxArray2d sub(CxArray2d a, boolean inpl)
-	{
-		if (!equalSignature(a)) return null;
-		return CxPatBpo.dispatch(this, a, inpl, new CxBpoSubByte());
+	@Override
+	public CxArray2d<byte[]> sub(CxArray2d<byte[]> array, boolean inplace) {
+		if (!equalSignature(array))
+			return null;
+		return new CxBpoSubByte(this, array, inplace).dispatch();
 	}
 
-
-	public CxArray2d mul(CxArray2d a, boolean inpl)
-	{
-		if (!equalSignature(a)) return null;
-		return CxPatBpo.dispatch(this, a, inpl, new CxBpoMulByte());
+	@Override
+	public CxArray2d<byte[]> mul(CxArray2d<byte[]> array, boolean inplace) {
+		if (!equalSignature(array))
+			return null;
+		return new CxBpoMulByte(this, array, inplace).dispatch();
 	}
 
-
-	public CxArray2d div(CxArray2d a, boolean inpl)
-	{
-		if (!equalSignature(a)) return null;
-		return CxPatBpo.dispatch(this, a, inpl, new CxBpoDivByte());
+	@Override
+	public CxArray2d<byte[]> div(CxArray2d<byte[]> array, boolean inplace) {
+		if (!equalSignature(array))
+			return null;
+		return new CxBpoDivByte(this, array, inplace).dispatch();
 	}
+
+	/*** Pixel Manipulation (NOT PARALLEL) ****************************/
+
+	@Override
+	public CxPixelByte getPixel(int xIndex, int yIndex) {
+		return new CxPixelByte(xIndex, yIndex, width, height, borderWidth,
+				borderHeight, extent, data);
+	}
+
+	@Override
+	public void setPixel(CxPixel<byte[]> pixel, int xIndex, int yIndex) {
+		byte[] values = pixel.getValue();
+
+		int offset = ((width + 2 * borderWidth) * borderHeight + borderWidth)
+				* extent;
+		int stride = borderWidth * extent * 2;
+		int pos = offset + yIndex * (width * extent + stride) + xIndex * extent;
+
+		for (int i = 0; i < extent; i++) {
+			data[pos + i] = values[i];
+		}
+		return;
+	}
+
+	/*** Clone ********************************************************/
+
+	@Override
+	public CxArray2dBytes clone() {
+		CxArray2dBytes c = new CxArray2dBytes(width + 2 * borderWidth,
+				height + 2 * borderHeight, extent, data.clone());
+		c.setDimensions(width, height, borderWidth, borderHeight, extent);
+		c.setGlobalState(globalState);
+		if (partialData != null) {
+			c.setPartialData(partialDataWidth, partialDataHeight, partialData
+					.clone(), partialState, distributionType);
+		}
+		return c;
+	}
+
+	@Override
+	public CxArray2dBytes clone(int newBorderWidth, int newBorderHeight) {
+		byte[] newdata = new byte[width * height * extent];
+
+		int off = ((width + 2 * borderWidth) * borderHeight + borderWidth)
+				* extent;
+		int stride = borderWidth * extent * 2;
+		int srcPtr = 0;
+		int dstPtr = 0;
+
+		for (int j = 0; j < height; j++) {
+			srcPtr = off + j * (width * extent + stride);
+			dstPtr = j * (width * extent);
+			for (int i = 0; i < width * extent; i++) {
+				newdata[dstPtr + i] = data[srcPtr + i];
+			}
+		}
+		CxArray2dBytes c = new CxArray2dBytes(width, height,
+				newBorderWidth, newBorderHeight, extent, newdata);
+		c.setGlobalState(globalState);
+		if (partialData != null) {
+			byte[] newpdata = new byte[(partialDataWidth + 2 * newBorderWidth)
+					* (partialDataHeight + 2 * newBorderHeight) * extent];
+
+			int srcOff = ((partialDataWidth + 2 * borderWidth) * borderHeight + borderWidth)
+					* extent;
+			int dstOff = ((partialDataWidth + 2 * newBorderWidth)
+					* newBorderHeight + newBorderWidth)
+					* extent;
+
+			for (int j = 0; j < partialDataHeight; j++) {
+				srcPtr = srcOff + j * (partialDataWidth + 2 * borderWidth)
+						* extent;
+				dstPtr = dstOff + j * (partialDataWidth + 2 * newBorderWidth)
+						* extent;
+				for (int i = 0; i < partialDataWidth * extent; i++) {
+					newpdata[dstPtr + i] = partialData[srcPtr + i];
+				}
+			}
+			c.setPartialData(partialDataWidth, partialDataHeight, newpdata,
+					partialState, distributionType);
+		}
+		return c;
+	}
+
 }

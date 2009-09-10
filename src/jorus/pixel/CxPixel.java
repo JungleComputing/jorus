@@ -7,36 +7,27 @@
  *
  */
 
-
 package jorus.pixel;
 
-
-public abstract class CxPixel<T>
-{
+public abstract class CxPixel<T> {
 	/*** Private Properties *******************************************/
 
-	protected int	index;
-	protected int	extent;
-	protected T		data;
-
+	protected int index;
+	protected int extent;
+	protected T data;
 
 	/*** Public Methods ***********************************************/
 
-
-	public CxPixel(int xidx, int yidx,
-				   int w, int h, int bw, int bh, int ext, T array)
-	{
-		index  = ((w+2*bw)*(bh+yidx) + bw+xidx) * ext;
+	public CxPixel(int xidx, int yidx, int w, int h, int bw, int bh, int ext,
+			T array) {
+		index = ((w + 2 * bw) * (bh + yidx) + bw + xidx) * ext;
 		extent = ext;
-		data   = array;
+		data = array;
 	}
 
-
-	public int getExtent()
-	{
+	public int getExtent() {
 		return extent;
 	}
-
 
 	public abstract T getValue();
 }

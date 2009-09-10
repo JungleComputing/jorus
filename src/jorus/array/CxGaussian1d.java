@@ -13,14 +13,14 @@ package jorus.array;
 
 public class CxGaussian1d
 {
-	public static CxArray2dScalarDouble create(double sigma, int deri,
+	public static CxArray2dDoubles create(double sigma, int deri,
 									double acc, int maxfsize, int fsize)
 	{
 		if (fsize < 1) {
 			fsize = filterWidth(sigma, deri, acc, maxfsize);
 		}
 		double[] fData = makeFilter(sigma, deri, acc, fsize, maxfsize);
-		return new CxArray2dScalarDouble(fsize, 1, 0, 0, fData);
+		return new CxArray2dDoubles(fsize, 1, 0, 0, 1, fData);
 	}
 
 
@@ -66,7 +66,7 @@ public class CxGaussian1d
 	private static int filterWidth(double sigma,
 								   int deri, double acc, int maxlen)
 	{
-		double	acc2 = 1.0 - (1.0 - acc)/2.0;
+//		double	acc2 = 1.0 - (1.0 - acc)/2.0;
 		int		fsize = 2 * (int)(acc*sigma+0.5) + 1;
 
 		// Filter is always odd sized; so if maxlen is even subtract 1.

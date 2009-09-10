@@ -7,11 +7,9 @@
  *
  */
 
-
 package jorus.operations;
 
+public abstract class CxRedOpArray<T> {
 
-public abstract class CxRedOpArray<T>
-{
 	public abstract void doIt(T val1, T val2);
 }
