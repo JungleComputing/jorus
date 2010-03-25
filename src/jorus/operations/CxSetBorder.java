@@ -14,17 +14,16 @@ package jorus.operations;
 import jorus.array.CxArray2d;
 
 
-public abstract class CxSetBorder<T> extends jorus.patterns.SetBorder<T>
+public abstract class CxSetBorder<T>
 {
-
 	protected int		w      = 0;
 	protected int		h      = 0;
 	protected int		off    = 0;
 	protected int		stride = 0;
 	protected boolean	doParallel = false;
 
-	@Override
-	protected void init(CxArray2d<T> s1, boolean parallel)
+
+	public void init(CxArray2d s1, boolean parallel)
 	{
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1  = s1.getExtent();
@@ -38,5 +37,5 @@ public abstract class CxSetBorder<T> extends jorus.patterns.SetBorder<T>
 	}
 
 
-	
+	public abstract void doIt(T dst, int numX, int numY);
 }

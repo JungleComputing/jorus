@@ -6,9 +6,14 @@
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
 	<property name="distdir" value="./lib" />
-
+	
+	<property name="external" location="external" />
+	<!--<property name="ipl" value="${external}/ipl"/> -->
+	<property environment="env"/>
+	<property name="ipl" value="/${env.IPL_HOME}/lib"/>
+	
 	<path id="default.classpath">
-		<fileset dir="external">
+		<fileset dir="${ipl}">
 			<include name="*.jar" />
 		</fileset>
 		<pathelement path="tmp" />

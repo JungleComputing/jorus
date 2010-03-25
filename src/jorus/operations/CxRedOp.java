@@ -7,8 +7,11 @@
  *
  */
 
+
 package jorus.operations;
 
-public abstract class CxRedOp<T> {
+
+public abstract class CxRedOp<T>
+{
 	public abstract T doIt(T val1, T val2);
 }

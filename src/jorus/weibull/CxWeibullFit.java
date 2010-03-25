@@ -7,49 +7,53 @@
  *
  */
 
+
 package jorus.weibull;
 
-public class CxWeibullFit extends jorus.patterns.WeibullFitTask {
-	// A bit of a hack; need to generalize this (much) more!
 
-	public CxWeibullFit(int max, int max2) {
-		super(max, max2);
-	}
+public class CxWeibullFit
+{
+    // A bit of a hack; need to generalize this (much) more!
 
-	FitWeibull fitW;
-	double[][][] histoArray;
-	double[][] betaArray;
-	double[][] gammaArray;
-	int nrBins;
 
-	@Override
-	public void init(FitWeibull fw, double[][][] histos, double[][] betas,
-			double[][] gammas, int bins) {
-		fitW = fw;
-		histoArray = histos;
-		betaArray = betas;
-		gammaArray = gammas;
-		nrBins = bins;
-	}
+    FitWeibull	fitW;
+    double[][][]	histoArray;
+    double[][]	betaArray;
+    double[][]	gammaArray;
+    int		nrBins;
 
-	@Override
-	public void doIt(int i, int j) {
-		if (j == 0) {
-			fitW.doFit(histoArray[j][i], nrBins, 1.);
-		} else {
-			fitW.doFitMarginal(histoArray[j][i], nrBins, -1., 1.);
-		}
-		betaArray[j][i] = fitW.beta();
-		gammaArray[j][i] = fitW.gamma();
-	}
 
-	@Override
-	public double[] getBetas(int idx) {
-		return betaArray[idx];
-	}
+    public void init(FitWeibull fw, double[][][] histos, 
+            double[][] betas, double[][] gammas, int bins)
+    {
+        fitW	   = fw;
+        histoArray = histos;
+        betaArray  = betas;
+        gammaArray = gammas;
+        nrBins     = bins;
+    }
 
-	@Override
-	public double[] getGammas(int idx) {
-		return gammaArray[idx];
-	}
+
+    public void doIt(int i, int j)
+    {
+        if (j == 0) {
+            fitW.doFit(histoArray[j][i], nrBins, 1.);
+        } else {
+            fitW.doFitMarginal(histoArray[j][i], nrBins, -1., 1.);
+        }
+        betaArray[j][i] = fitW.beta();
+        gammaArray[j][i] = fitW.gamma();
+    }
+
+
+    public double[] getBetas(int idx)
+    {
+        return betaArray[idx];
+    }
+
+
+    public double[] getGammas(int idx)
+    {
+        return gammaArray[idx];
+    }
 }

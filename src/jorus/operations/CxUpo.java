@@ -12,22 +12,17 @@ package jorus.operations;
 
 
 import jorus.array.CxArray2d;
-import jorus.patterns.Upo;
 
 
-public abstract class CxUpo<T> extends Upo<T>
+public abstract class CxUpo<T>
 {
 	protected int	w      = 0;
 	protected int	h      = 0;
 	protected int	off    = 0;
 	protected int	stride = 0;
 
-	public CxUpo(CxArray2d<T> s1, boolean inplace) {
-		super(s1, inplace);
-	}
 
-	@Override
-	public void init(CxArray2d<T> s1, boolean parallel)
+	public void init(CxArray2d s1, boolean parallel)
 	{
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1  = s1.getExtent();
@@ -38,4 +33,7 @@ public abstract class CxUpo<T> extends Upo<T>
 		off    = ((w1 + 2*bw1) * s1.getBorderHeight() + bw1) * e1;
 		stride = bw1 * e1*2;
 	}
+
+
+	public abstract void doIt(T dst);
 }

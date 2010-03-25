@@ -14,12 +14,8 @@ package jorus.operations;
 import jorus.array.CxArray2d;
 
 
-public abstract class CxBpo<T> extends jorus.patterns.Bpo<T>
+public abstract class CxBpo<T>
 {
-	public CxBpo(CxArray2d<T> s1, CxArray2d<T> s2, boolean inplace) {
-		super(s1, s2, inplace);
-	}
-
 	protected int	w       = 0;
 	protected int	h       = 0;
 	protected int	off1    = 0;
@@ -27,8 +23,8 @@ public abstract class CxBpo<T> extends jorus.patterns.Bpo<T>
 	protected int	stride1 = 0;
 	protected int	stride2 = 0;
 	
-	@Override
-	protected void init(CxArray2d<T> s1, CxArray2d<T> s2, boolean parallel)
+
+	public void init(CxArray2d s1, CxArray2d s2, boolean parallel)
 	{
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1  = s1.getExtent();
@@ -44,4 +40,7 @@ public abstract class CxBpo<T> extends jorus.patterns.Bpo<T>
 		stride1 = bw1 * e1*2;
 		stride2 = bw2 * e2*2;
 	}
+
+
+	public abstract void doIt(T dst, T src);
 }
