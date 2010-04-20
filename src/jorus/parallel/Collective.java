@@ -16,7 +16,7 @@ public class Collective<T> {
   //  private long time; 
   //  private long count; 
     
-    @SuppressWarnings("unchecked")
+//    @SuppressWarnings("unchecked")
     protected Collective(PxSystem system, Class c) throws Exception {
         
         this.rank = system.myCPU();
@@ -24,7 +24,7 @@ public class Collective<T> {
         this.logCPUs = (int) (Math.log((double) size) / Math.log(2.0));
         this.system = system;         
 
-        util = ArrayUtil.createImplementation(c);
+        util = (ArrayUtil<T>) ArrayUtil.createImplementation(c);
         comm = CommunicationUtil.createImplementation(system, c);
     }
     

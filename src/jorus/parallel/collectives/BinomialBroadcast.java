@@ -7,7 +7,7 @@ public class BinomialBroadcast<T> extends Broadcast<T> {
 
     /* binomial tree broadcast, good for small messages */ 
     
-    public BinomialBroadcast(PxSystem system, Class c) throws Exception {
+    public BinomialBroadcast(PxSystem system, Class<?> c) throws Exception {
         super(system, c);
     }
 

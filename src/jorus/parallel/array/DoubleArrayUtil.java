@@ -2,7 +2,7 @@ package jorus.parallel.array;
 
 import jorus.parallel.ArrayUtil;
 
-public final class DoubleArrayUtil extends ArrayUtil<double []> {
+public final class DoubleArrayUtil extends ArrayUtil<double[]> {
 
     private double [] cache; 
     

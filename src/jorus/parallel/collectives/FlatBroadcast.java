@@ -22,5 +22,4 @@ public final class FlatBroadcast<T> extends Broadcast<T> {
             comm.receive(0, data, 0, length);
         }
     }
-
 }

@@ -1,6 +1,6 @@
 package jorus.parallel.collectives;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceArrayToAll;
 
@@ -12,16 +12,16 @@ public final class FlatReduceArrayToAll<T> extends ReduceArrayToAll<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToAll(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToAll(T data, RedOpArray<T> op) throws Exception {
         
    //     long start = System.nanoTime();
 
         final int length = util.getLength(data);
         
         if (rank == 0) {
-            
+       
             final T tmp = (T) util.create(length);
-            
+           
             for (int partner = 1; partner < size; partner++) {
                 comm.receive(partner, tmp, 0, length);
                 op.doIt(data, tmp);
@@ -30,7 +30,7 @@ public final class FlatReduceArrayToAll<T> extends ReduceArrayToAll<T> {
             for (int partner = 1; partner < size; partner++) {
                 comm.send(partner, data, 0, length);
             }
-    
+            
             util.release(tmp);
       
         } else {

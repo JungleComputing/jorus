@@ -1,6 +1,6 @@
 package jorus.parallel;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 
 public abstract class ReduceArrayToRoot<T> extends Collective {
    
@@ -8,5 +8,5 @@ public abstract class ReduceArrayToRoot<T> extends Collective {
         super(system, c);
     }
     
-    public abstract T reduceArrayToRoot(T data, CxRedOpArray<T> op) throws Exception;
+    public abstract T reduceArrayToRoot(T data, RedOpArray<T> op) throws Exception;
 }

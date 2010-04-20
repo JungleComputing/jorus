@@ -15,14 +15,14 @@ public abstract class ArrayUtil<T> {
     public abstract void release(T array);
     public abstract int typeSize();
     
-    public static ArrayUtil createImplementation(Class c) throws Exception { 
+    public static ArrayUtil createImplementation(Class<?> c) throws Exception { 
         
         // FIXME: ugly -- J
         if (!c.isArray()) { 
             throw new Exception("Illegal ArrayUtil type: " + c.getName());
         }
      
-        Class component = c.getComponentType();
+        Class<?> component = c.getComponentType();
         
         if (component.equals(byte.class)) { 
             return new ByteArrayUtil();

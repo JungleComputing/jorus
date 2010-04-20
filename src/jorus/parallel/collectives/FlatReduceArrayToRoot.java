@@ -1,6 +1,6 @@
 package jorus.parallel.collectives;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceArrayToRoot;
 
@@ -12,7 +12,7 @@ public final class FlatReduceArrayToRoot<T> extends ReduceArrayToRoot<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToRoot(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToRoot(T data, RedOpArray<T> op) throws Exception {
    
         final int length = util.getLength(data);
         

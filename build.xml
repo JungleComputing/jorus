@@ -16,6 +16,9 @@
 		<fileset dir="${ipl}">
 			<include name="*.jar" />
 		</fileset>
+		<fileset dir="${external}">
+			<include name="*.jar" />
+		</fileset>
 		<pathelement path="tmp" />
 	</path>
 
@@ -28,7 +31,7 @@
 	</target>
 
 	<target name="compile" depends="prepare">
-		<javac classpathref="default.classpath" destdir="${builddir}" srcdir="${srcdir}" debug="true" target="1.5" includes="**/*.java" />
+		<javac classpathref="default.classpath" destdir="${builddir}" srcdir="${srcdir}" debug="true" target="1.6" includes="**/*.java" />
 	</target>
 
 	<!-- Internal target - Builds the JAR file -->

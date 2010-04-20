@@ -2,7 +2,7 @@ package jorus.parallel.array;
 
 import jorus.parallel.ArrayUtil;
 
-public class ByteArrayUtil extends ArrayUtil<byte []> {
+public class ByteArrayUtil extends ArrayUtil<byte[]> {
 
     @Override
     public byte[] clone(byte[] array) {

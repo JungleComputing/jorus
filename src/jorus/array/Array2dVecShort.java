@@ -1,0 +1,65 @@
+/*
+ *  Copyright (c) 2008, Vrije Universiteit, Amsterdam, The Netherlands.
+ *  All rights reserved.
+ *
+ *  Author(s)
+ *  Frank Seinstra	(fjseins@cs.vu.nl)
+ *
+ */
+
+package jorus.array;
+
+import jorus.pixel.*;
+
+public class Array2dVecShort extends Array2dShorts {
+	/*** Public Methods ***********************************************/
+	public Array2dVecShort(Array2dShorts orig, int newBW, int newBH) {
+		super(orig, newBW, newBH);
+	}
+
+	public Array2dVecShort(Array2dShorts orig) {
+		super(orig);
+	}
+
+	public Array2dVecShort(int width, int height, int borderWidth,
+			int borderHeight, int extent, boolean create) {
+		super(width, height, borderWidth, borderHeight, extent, create);
+	}
+
+	public Array2dVecShort(int width, int height, int borderWidth,
+			int borderHeight, int extent, short[] array, boolean copy) {
+		super(width, height, borderWidth, borderHeight, extent, array, copy);
+	}
+
+	/*** Pixel Manipulation (NOT PARALLEL) ****************************/
+
+	/*@Override
+	public CxPixelShort getPixel(int xidx, int yidx) {
+		return new CxPixelShort(xidx, yidx, width, height, bwidth, bheight,
+				extent, data);
+	}*/
+
+	/*@Override
+	public void setPixel(CxPixel<short[]> p, int xidx, int yidx) {
+		short[] values = p.getValue();
+
+		int off = ((width + 2 * bwidth) * bheight + bwidth) * extent;
+		int stride = bwidth * extent * 2;
+		int pos = off + yidx * (width * extent + stride) + xidx * extent;
+
+		for (int i = 0; i < extent; i++) {
+			data[pos + i] = values[i];
+		}
+		return;
+	}*/
+
+	@Override
+	public Array2dVecShort clone() {
+		return new Array2dVecShort(this);
+	}
+
+	@Override
+	public Array2dVecShort clone(int newBorderWidth, int newBorderHeight) {
+		return new Array2dVecShort(this, newBorderWidth, newBorderHeight);
+	}
+}

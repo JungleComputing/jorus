@@ -1,6 +1,6 @@
 package jorus.parallel.collectives;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceArrayToAll;
 
@@ -12,7 +12,7 @@ public class ReduceBroadcastReduceArrayToAll<T> extends ReduceArrayToAll<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToAll(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToAll(T data, RedOpArray<T> op) throws Exception {
         
         // This is a simple binomial reduce-to-root followed by a binomial 
         // broadcast. 

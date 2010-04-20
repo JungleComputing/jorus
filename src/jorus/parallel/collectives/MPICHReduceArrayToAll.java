@@ -1,6 +1,6 @@
 package jorus.parallel.collectives;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceArrayToAll;
 
@@ -44,7 +44,7 @@ public final class MPICHReduceArrayToAll<T> extends ReduceArrayToAll<T> {
     
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToAll(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToAll(T data, RedOpArray<T> op) throws Exception {
 
         // NOTE: this is a port of the MPICH allreduce algorithm, which uses 
         // a recursive halving approach. We assume that the reduce operation 

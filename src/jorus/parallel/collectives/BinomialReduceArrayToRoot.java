@@ -1,18 +1,18 @@
 package jorus.parallel.collectives;
 
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceArrayToRoot;
 
 public class BinomialReduceArrayToRoot<T> extends ReduceArrayToRoot<T> {
 
-    public BinomialReduceArrayToRoot(PxSystem system, Class c) throws Exception {
+    public BinomialReduceArrayToRoot(PxSystem system, Class<?> c) throws Exception {
         super(system, c);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToRoot(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToRoot(T data, RedOpArray<T> op) throws Exception {
    
         final int length = util.getLength(data);
         final T tmp = (T) util.create(length);
@@ -30,7 +30,7 @@ public class BinomialReduceArrayToRoot<T> extends ReduceArrayToRoot<T> {
                     op.doIt(data, tmp);            
                 } 
             } else {
-                /* Done receiveing. Now send my result to parent */                    
+                /* Done receiving. Now send my result to parent */                    
                 final int dst = ((rank & (~ mask))) % size; 
                 comm.send(dst, data, 0, length);
             }

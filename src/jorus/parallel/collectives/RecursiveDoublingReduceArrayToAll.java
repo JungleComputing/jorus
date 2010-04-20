@@ -1,7 +1,7 @@
 package jorus.parallel.collectives;
 
 import jorus.parallel.ReduceArrayToAll;
-import jorus.operations.CxRedOpArray;
+import jorus.operations.communication.RedOpArray;
 import jorus.parallel.PxSystem;
 
 public class RecursiveDoublingReduceArrayToAll<T> extends ReduceArrayToAll<T> {
@@ -12,7 +12,7 @@ public class RecursiveDoublingReduceArrayToAll<T> extends ReduceArrayToAll<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T reduceArrayToAll(T data, CxRedOpArray<T> op) throws Exception {
+    public T reduceArrayToAll(T data, RedOpArray<T> op) throws Exception {
 
         // NOTE: approach used the recursive doubling approach. We assume that 
         // the reduce operation in commutative.

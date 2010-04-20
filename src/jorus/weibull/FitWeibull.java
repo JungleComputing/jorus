@@ -11,6 +11,7 @@
 
 package jorus.weibull;
 
+import ibis.math.FlexMath;
 
 public class FitWeibull
 {
@@ -98,30 +99,37 @@ public class FitWeibull
 	private double betaest(double gamma, double xgm)
 	{
 		double	sum = 0.0;
-		double	ddx = _dx / xgm;
+		final double	ddx = _dx / xgm;
 		double	x = 0.5 * ddx;
+                
+             //   System.out.println("GAMMA " + gamma + " xgm " + xgm + " ddx " 
+             //           + ddx);
 
 		for (int i=0; i<_bins; i++) {
 			if (_hist[i] > _precision) {
-				sum += Math.pow(x, gamma) * _hist[i];
+				sum += FlexMath.pow(x, gamma) * _hist[i];
 			}
 			x += ddx;
 		}
-		return xgm * Math.pow(sum/_norm, 1./gamma);
+		return xgm * FlexMath.pow(sum/_norm, 1./gamma);
 	}
 
 
 	private double gfunct(double gamma, double xgm)
 	{
 		double	sum = 0.0;
-		double	beta = betaest(gamma, xgm);
-		double	ddx = _dx / beta;
+		final double	beta = betaest(gamma, xgm);
+		final double	ddx = _dx / beta;
 		double	x = 0.5 * ddx;
 
+            //     System.out.println("GAMMA " + gamma + " xgm " + xgm + " beta " 
+            //                   + beta);
+
+                
 		for (int i=0; i<_bins; i++) {
 			if (_hist[i] > _precision) {
-				sum += Math.log(x * beta) *
-						(Math.pow(x, gamma) - 1.0) * _hist[i];
+				sum += FlexMath.log(x * beta) *
+						(FlexMath.pow(x, gamma) - 1.0) * _hist[i];
 			}
 			x += ddx;
 		}
@@ -143,7 +151,7 @@ public class FitWeibull
 
 		for (int i=0; i<_bins; i++) {
 			if (_hist[i] > _precision) {
-				double logy = Math.log(x);
+				double logy = FlexMath.log(x);
 				sumy += _hist[i]*logy;
 				sumysq += _hist[i]*logy*logy;
 				_norm += _hist[i];
@@ -153,8 +161,8 @@ public class FitWeibull
 
 		sumy /= _norm;
 		sumysq /= _norm;
-		_gamma = 1.28 / Math.sqrt((sumysq-sumy*sumy)*_bins/(_bins-1.0));
-		xgm = Math.exp(sumy);
+		_gamma = 1.28 / FlexMath.sqrt((sumysq-sumy*sumy)*_bins/(_bins-1.0));
+		xgm = FlexMath.exp(sumy);
 		tol = 2.0 * 0.001 * _gamma;
 		gfm = gfunct(_gamma, xgm);
 

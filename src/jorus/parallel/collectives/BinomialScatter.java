@@ -5,7 +5,7 @@ import jorus.parallel.Scatter;
 
 public class BinomialScatter<T> extends Scatter<T> { 
 
-    public BinomialScatter(PxSystem system, Class c) throws Exception {
+    public BinomialScatter(PxSystem system, Class<?> c) throws Exception {
         super(system, c);
     }
 
