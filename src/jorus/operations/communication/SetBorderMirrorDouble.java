@@ -100,28 +100,50 @@ public class SetBorderMirrorDouble extends SetBorder<double[]> {
 
 			// Timo: you mean left/right border??
 
-			// Mirror left part NOT including upper and lower "corners"
-
-			for (int j = 0; j < height; j++) {
-				int imageIndex = offset + j * rowSize;
-				int borderIndex = imageIndex - extent;
-				for (int i = 0; i < numX; i++) {
-					for (int k = 0; k < extent; k++) {
-						destination[borderIndex - i * extent + k] = destination[imageIndex
-								+ i * extent + k];
+			if (extent == 1) {
+				// Mirror left part NOT including upper and lower "corners"
+				for (int j = 0; j < height; j++) {
+					int imageIndex = offset + j * rowSize;
+					int borderIndex = imageIndex - extent;
+					for (int i = 0; i < numX; i++) {
+						destination[borderIndex - i * extent] = destination[imageIndex
+								+ i * extent];
 					}
 				}
-			}
 
-			// Mirror right part NOT including upper and lower "corners"
+				// Mirror right part NOT including upper and lower "corners"
+				for (int j = 0; j < height; j++) {
+					int borderIndex = offset + j * rowSize + width * extent;
+					int imageIndex = borderIndex - extent;
+					for (int i = 0; i < numX; i++) {
+						destination[borderIndex + i * extent] = destination[imageIndex
+								- i * extent];
+					}
+				}
 
-			for (int j = 0; j < height; j++) {
-				int borderIndex = offset + j * rowSize + width * extent;
-				int imageIndex = borderIndex - extent;
-				for (int i = 0; i < numX; i++) {
-					for (int k = 0; k < extent; k++) {
-						destination[borderIndex + i * extent + k] = destination[imageIndex
-								- i * extent + k];
+			} else { //extent != 1
+				// Mirror left part NOT including upper and lower "corners"
+				for (int j = 0; j < height; j++) {
+					int imageIndex = offset + j * rowSize;
+					int borderIndex = imageIndex - extent;
+					for (int i = 0; i < numX; i++) {
+						for (int k = 0; k < extent; k++) {
+							destination[borderIndex - i * extent + k] = destination[imageIndex
+									+ i * extent + k];
+						}
+					}
+				}
+
+				// Mirror right part NOT including upper and lower "corners"
+
+				for (int j = 0; j < height; j++) {
+					int borderIndex = offset + j * rowSize + width * extent;
+					int imageIndex = borderIndex - extent;
+					for (int i = 0; i < numX; i++) {
+						for (int k = 0; k < extent; k++) {
+							destination[borderIndex + i * extent + k] = destination[imageIndex
+									- i * extent + k];
+						}
 					}
 				}
 			}
@@ -131,6 +153,8 @@ public class SetBorderMirrorDouble extends SetBorder<double[]> {
 			try {
 				PxSystem.get().borderExchange(destination, width * extent,
 						height, offset, stride, numY);
+				// PxSystem.get().borderExchangeTimo(destination, width *
+				// extent, height, offset - stride/2, rowSize, numY);
 			} catch (Exception e) {
 				//
 			}
@@ -139,7 +163,7 @@ public class SetBorderMirrorDouble extends SetBorder<double[]> {
 
 			final int baseRow = offset - stride / 2;
 
-			if (px.myCPU() == 0) {
+			if (px.myCPU() == 0) { // the first CPU
 				for (int j = 0; j < numY; j++) {
 					int borderIndex = baseRow - (1 + j) * rowSize;
 					int imageIndex = baseRow + j * rowSize;

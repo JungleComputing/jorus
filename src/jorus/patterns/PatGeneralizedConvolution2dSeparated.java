@@ -19,7 +19,7 @@ import jorus.parallel.PxSystem;
 public class PatGeneralizedConvolution2dSeparated {
 	public static <T> Array2d<T> dispatch(Array2d<T> source,
 			Array2d<T> kernelX, Array2d<T> kernelY,
-			GeneralizedConvolution1d<T> gco, SetBorder<T> sbo) {
+			GeneralizedConvolution1d<T> gco, SetBorder<T> sbo, boolean inplace) {
 		int numX = kernelX.getWidth() / 2;
 		int numY = kernelY.getWidth() / 2;
 
@@ -27,6 +27,8 @@ public class PatGeneralizedConvolution2dSeparated {
 
 		if (numX > source.getBorderWidth() || numY > source.getBorderHeight()) {
 			dst = source.clone(numX, numY);
+		} else if(inplace) {
+			dst = source;
 		} else {
 			dst = source.clone();
 		}
@@ -34,13 +36,12 @@ public class PatGeneralizedConvolution2dSeparated {
 		if (PxSystem.initialized()) {
 
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
+			final boolean root = px.isRoot();
 
 			// run parallel
 			try {
-				if (dst.getLocalState() != Array2d.VALID
-						|| dst.getDistType() != Array2d.PARTIAL) {
-					if (rank == 0)
+				if (dst.getLocalState() != Array2d.LOCAL_PARTIAL) {
+					if (root)
 						System.out.println("GENCONV SCATTER 1...");
 					px.scatter(dst);
 				}
@@ -56,7 +57,8 @@ public class PatGeneralizedConvolution2dSeparated {
 				gco.doIt(dst.getPartialDataWriteOnly(), tmp
 						.getPartialDataReadOnly(), kernelY.getDataReadOnly());
 
-				dst.setGlobalState(Array2d.INVALID);
+//				dst.setGlobalState(GlobalState.INVALID);
+				dst.setGlobalState(Array2d.GLOBAL_INVALID);
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);

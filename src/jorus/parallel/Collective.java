@@ -16,8 +16,8 @@ public class Collective<T> {
   //  private long time; 
   //  private long count; 
     
-//    @SuppressWarnings("unchecked")
-    protected Collective(PxSystem system, Class c) throws Exception {
+    @SuppressWarnings("unchecked")
+    protected Collective(PxSystem system, Class<T> c) throws Exception {
         
         this.rank = system.myCPU();
         this.size = system.nrCPUs();
@@ -25,7 +25,7 @@ public class Collective<T> {
         this.system = system;         
 
         util = (ArrayUtil<T>) ArrayUtil.createImplementation(c);
-        comm = CommunicationUtil.createImplementation(system, c);
+        comm = (CommunicationUtil<T>) CommunicationUtil.createImplementation(system, c);
     }
     
     /*
@@ -48,12 +48,12 @@ public class Collective<T> {
 */
     
     @SuppressWarnings("unchecked")
-    public static Collective loadImplementation(String name, PxSystem s, Class c) throws Exception {
+    public static <T> Collective<T> loadImplementation(String name, PxSystem s, Class<T> c) throws Exception {
         
         try { 
-            Class clazz = Class.forName(name);
-            Constructor constructor = clazz.getConstructor(PxSystem.class, Class.class);
-            return (Collective) constructor.newInstance(s, c); 
+            Class<?> clazz = Class.forName(name);
+            Constructor<?> constructor = clazz.getConstructor(PxSystem.class, Class.class);
+            return (Collective<T>) constructor.newInstance(s, c); 
         } catch (Exception e) {
             throw new Exception("Failed to load collective: " + name, e);
         }

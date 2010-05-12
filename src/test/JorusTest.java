@@ -50,7 +50,7 @@ public class JorusTest {
 			logger.debug("nrCPUs = " + px.nrCPUs());
 			logger.debug("myCPU = " + px.myCPU());
 
-			master = (px.myCPU() == 0);
+			master = px.isRoot();
 
 			// Node 0 needs to provide an Ibis to contact the outside world.
 			if (master) {
@@ -133,7 +133,7 @@ public class JorusTest {
 //		array = (Array2dScalarDouble) array.gaussDerivative2d(11, 0, 0, 3);
 //		array = (Array2dScalarDouble) array.convGauss2d(5, 0, 3, 11, 0, 3);
 //		array = (Array2dScalarDouble) array.convolutionRotated1d(Gaussian1d.create(5, 0, 0.995, 25, 25), -0.25* Math.PI);
-		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(2, 0, 3, 11, 0, 3, 0.25 * Math.PI);
+		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(2, 0, 3, 11, 0, 3, 0.25 * Math.PI, true);
 		array = (Array2dScalarDouble) array.clone(0, 0); // remove borders
 
 		if (PxSystem.initialized()) {

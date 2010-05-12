@@ -5,7 +5,7 @@ import jorus.parallel.PxSystem;
 
 public final class FlatBroadcast<T> extends Broadcast<T> {
 
-    public FlatBroadcast(PxSystem system, Class c) throws Exception {
+    public FlatBroadcast(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 

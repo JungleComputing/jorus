@@ -33,14 +33,12 @@ public class PatGeneralizedConvolution1d {
 		if (PxSystem.initialized()) {
 
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
 
 			// run parallel
 			try {
-				if (sourceImage.getLocalState() != Array2d.VALID
-						|| sourceImage.getDistType() != Array2d.PARTIAL) {
-					if (rank == 0)
-						System.out.println("GENCONV SCATTER 1...");
+				if (sourceImage.getLocalState() != Array2d.LOCAL_PARTIAL) {
+//					if (px.isRoot())
+//						System.out.println("GENCONV SCATTER 1...");
 					px.scatter(sourceImage);
 				}
 
@@ -53,7 +51,7 @@ public class PatGeneralizedConvolution1d {
 								.getPartialDataReadOnly(), kernel
 								.getDataReadOnly());
 
-				resultImage.setGlobalState(Array2d.INVALID);
+				resultImage.setGlobalState(Array2d.GLOBAL_INVALID);
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);

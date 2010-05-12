@@ -1,12 +1,14 @@
 package jorus.parallel;
 
-public abstract class Barrier extends Collective {
+import java.io.IOException;
 
-    protected Barrier(PxSystem system, Class c) throws Exception {
+public abstract class Barrier<T> extends Collective<T> {
+
+    protected Barrier(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 
-    public abstract void barrier() throws Exception; 
+    public abstract void barrier() throws IOException; 
     
     /*
     public static Barrier create(String type, PxSystem s, Class c) throws Exception { 

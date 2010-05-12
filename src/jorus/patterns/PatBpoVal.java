@@ -47,18 +47,18 @@ public class PatBpoVal {
 		if (PxSystem.initialized()) { // run parallel
 
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
-			final int size = px.nrCPUs();
+//			final int rank = px.myCPU();
+//			final int size = px.nrCPUs();
 
 			try {
 
-				if (s1.getLocalState() != Array2d.VALID
-						|| s1.getDistType() != Array2d.PARTIAL) {
+				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
 
 					// The data structure has not been distibuted yet, or is no
 					// longer valid
 
-					if (s1.getGlobalState() != Array2d.NONE) {
+//					if (s1.getGlobalState() != GlobalState.NONE) {
+					if (s1.getGlobalState() != Array2d.GLOBAL_NONE) {
 
 						// if (PxSystem.myCPU() == 0) System.out.println("UPO
 						// SCATTER 1...");
@@ -72,15 +72,14 @@ public class PatBpoVal {
 						// scatter. We only initialize the local partitions.
 
 						final int pHeight = px.getPartHeight(s1.getHeight(),
-								rank);
+								px.myCPU());
 
 						final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
 								* (pHeight + s1.getBorderHeight() * 2)
 								* s1.getExtent();
 
 						s1.setPartialData(s1.getWidth(), pHeight, s1
-								.createDataArray(length), Array2d.VALID,
-								Array2d.PARTIAL);
+								.createDataArray(length), Array2d.LOCAL_PARTIAL);
 					}
 				}
 
@@ -89,7 +88,8 @@ public class PatBpoVal {
 
 				bpoVal.init(s1, true);
 				bpoVal.doIt(dst.getPartialDataReadWrite());
-				dst.setGlobalState(Array2d.INVALID);
+//				dst.setGlobalState(GlobalState.INVALID);
+				dst.setGlobalState(Array2d.GLOBAL_INVALID);
 
 				// if (PxSystem.myCPU() == 0) System.out.println("UPO
 				// GATHER...");
@@ -101,13 +101,16 @@ public class PatBpoVal {
 			}
 
 		} else { // run sequential
-			if (s1.getGlobalState() == Array2d.NONE) {
+//			if (s1.getGlobalState() == GlobalState.NONE) {
+			if (s1.getGlobalState() == Array2d.GLOBAL_NONE) {
 				final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
 						* (s1.getHeight() + s1.getBorderHeight() * 2)
 						* s1.getExtent();
 
+//				s1.setData(s1.getWidth(), s1.getHeight(), s1
+//						.createDataArray(length), GlobalState.VALID);
 				s1.setData(s1.getWidth(), s1.getHeight(), s1
-						.createDataArray(length), Array2d.VALID);
+						.createDataArray(length), Array2d.GLOBAL_VALID);
 			}
 
 			bpoVal.init(s1, false);

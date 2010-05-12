@@ -14,8 +14,10 @@ public abstract class ArrayUtil<T> {
     public abstract T create(int length);    
     public abstract void release(T array);
     public abstract int typeSize();
+    public abstract void reduce(T target, T source, int extent, int offset, int pixels, ReduceOp reduceOp) throws UnsupportedOperationException;
+    public abstract void reduce(T target, T source, int extent, ReduceOp reduceOp) throws UnsupportedOperationException;
     
-    public static ArrayUtil createImplementation(Class<?> c) throws Exception { 
+    public static ArrayUtil<?> createImplementation(Class<?> c) throws Exception { 
         
         // FIXME: ugly -- J
         if (!c.isArray()) { 

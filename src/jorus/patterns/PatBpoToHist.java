@@ -15,6 +15,7 @@ import jorus.array.Array2d;
 import jorus.operations.bpo.BpoToHist;
 import jorus.operations.communication.RedOpAddDoubleArray;
 import jorus.parallel.PxSystem;
+import jorus.parallel.ReduceOp;
 
 
 public class PatBpoToHist
@@ -30,18 +31,17 @@ public class PatBpoToHist
         if (PxSystem.initialized()) {		
             
             final PxSystem px = PxSystem.get();
-            final int rank = px.myCPU();
+            final boolean root = px.isRoot();
+
       
             try {
 
-                if (s1.getLocalState() != Array2d.VALID ||
-                        s1.getDistType() != Array2d.PARTIAL) {
-                    if (rank == 0) System.out.println("BPO2HIST SCATTER 1...");
+                if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
+                    if (root) System.out.println("BPO2HIST SCATTER 1...");
                     px.scatter(s1);
                 }
-                if (s2.getLocalState() != Array2d.VALID ||
-                        s2.getDistType() != Array2d.PARTIAL) {
-                    if (rank == 0) System.out.println("BPO2HIST SCATTER 2...");
+                if (s2.getLocalState() != Array2d.LOCAL_PARTIAL) {
+                    if (root) System.out.println("BPO2HIST SCATTER 2...");
                     px.scatter(s2);
                 }
 
@@ -51,7 +51,7 @@ public class PatBpoToHist
                         s2.getPartialDataReadOnly(), nBins, minVal, maxVal);
 
 //              if (PxSystem.myCPU() == 0) System.out.println("BPO2HIST ALLREDUCE..");
-                px.reduceArrayToAll(dst, reduceOp);
+                px.reduceToAll(dst, 1, ReduceOp.SUM);
 
             } catch (Exception e) {
                 System.err.println("Failed to perform operation!");

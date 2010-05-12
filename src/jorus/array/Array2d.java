@@ -9,9 +9,29 @@
 
 package jorus.array;
 
+import java.io.IOException;
+import java.io.Serializable;
+
+import jorus.parallel.PxSystem;
+import jorus.parallel.ReduceOp;
 import jorus.pixel.Pixel;
 
-public abstract class Array2d<T> {
+public abstract class Array2d<T> implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -378351580205311141L;
+
+	public static final int GLOBAL_NONE = 0;
+	public static final int GLOBAL_CREATED = 1;
+	public static final int GLOBAL_VALID = 2;
+	public static final int GLOBAL_INVALID = 3;
+	
+	public static final int LOCAL_NONE = 0;
+	public static final int LOCAL_PARTIAL = 1;
+	public static final int LOCAL_FULL = 2;
+	public static final int LOCAL_NOT_REDUCED = 3;
+
 	/** * Private Properties ****************************************** */
 
 	protected int width = 0; // array width
@@ -20,27 +40,32 @@ public abstract class Array2d<T> {
 	protected int bheight = 0; // array border height
 	protected int extent = 0; // pixel extent
 
-	protected Class<?> type = null; // element type
+	// protected Class<?> type = null; // element type
 
 	protected T data = null; // array of elements (not pixels)
 
-	protected int pwidth = 0; // partial array width
-	protected int pheight = 0; // partial array height
-	protected T pdata = null; // partial array of elements
+	// protected GlobalState globalState;
+	protected int globalState;
 
-	protected int gstate = NONE; // NONE, CREATED, VALID or INVALID
-	protected int pstate = NONE; // NONE, VALID or INVALID
-	protected int ptype = NONE; // NONE, PARTIAL, FULL or NOT-REDUCED
+	protected transient int pwidth = 0; // partial array width
+	protected transient int pheight = 0; // partial array height
+	protected transient T pdata = null; // partial array of elements
+	protected transient int localState = LOCAL_NONE;
+	protected transient ReduceOp requiredReduceOp = null;
+
+	// protected int gstate = NONE; // NONE, CREATED, VALID or INVALID
+	// protected int pstate = NONE; // NONE, VALID or INVALID
+	// protected int ptype = NONE; // NONE, PARTIAL, FULL or NOT-REDUCED
 
 	/** * Distribution States ***************************************** */
 
-	public static final int NONE = 0; // empty state
-	public static final int CREATED = 1; // global created
-	public static final int VALID = 2; // global/local valid
-	public static final int INVALID = 3; // global/local invalid
-	public static final int PARTIAL = 4; // scattered structure
-	public static final int FULL = 5; // replicated structure
-	public static final int NOT_REDUCED = 6; // not reduced
+	// public static final int NONE = 0; // empty state
+	// public static final int CREATED = 1; // global created
+	// public static final int VALID = 2; // global/local valid
+	// public static final int INVALID = 3; // global/local invalid
+	// public static final int PARTIAL = 4; // scattered structure
+	// public static final int FULL = 5; // replicated structure
+	// public static final int NOT_REDUCED = 6; // not reduced
 
 	/** * Public Methods ********************************************** */
 
@@ -50,7 +75,7 @@ public abstract class Array2d<T> {
 		// NOTE: here we assume array to be of length (w+2*bw)*(h+2*bh)
 		// Subclasses should make sure that this is indeed the case!!!!
 		setDimensions(w, h, bw, bh, e);
-		type = getDataType();
+		// type = getDataType();
 	}
 
 	// Constructor which takes the desired dimensions of the Cx2dArray, and
@@ -62,9 +87,13 @@ public abstract class Array2d<T> {
 		if (create) {
 			// Create new array and copy values, ignoring border values
 			data = createDataArray((w + 2 * bw) * (h + 2 * bh) * e);
-			gstate = VALID;
+			// globalState = GlobalState.VALID;
+			globalState = GLOBAL_VALID;
+			localState = LOCAL_NONE;
 		} else {
-			gstate = NONE;
+			// globalState = GlobalState.NONE;
+			globalState = GLOBAL_NONE;
+			localState = LOCAL_NONE;
 		}
 	}
 
@@ -84,8 +113,12 @@ public abstract class Array2d<T> {
 			data = array;
 		}
 
-		type = byte.class;
-		gstate = VALID;
+		// globalState = GlobalState.VALID;
+		globalState = GLOBAL_VALID;
+		localState = LOCAL_NONE;
+
+		// type = getDataType();
+		// type = byte.class;
 	}
 
 	// Copy constructor which copies an existing array, dimension of the
@@ -100,16 +133,18 @@ public abstract class Array2d<T> {
 
 			data = createDataArray(fullw * fullh * extent);
 
-			System.arraycopy(orig.data, 0, data, 0, fullw * fullh * extent);
+			if (orig.globalState == GLOBAL_VALID) {
+				//Timo: do not copy invalid data
+				System.arraycopy(orig.data, 0, data, 0, fullw * fullh * extent);
+			}
 		}
 
-		gstate = orig.gstate;
+		globalState = orig.globalState;
 
 		if (orig.pdata != null) {
 
 			pwidth = orig.pwidth;
 			pheight = orig.pheight;
-			ptype = orig.ptype;
 
 			// Special case: the 'pdata' may be an alias of 'data' when running
 			// on a single CPU.
@@ -120,13 +155,11 @@ public abstract class Array2d<T> {
 				final int fullph = pheight + 2 * bheight;
 
 				pdata = createDataArray(fullpw * fullph * extent);
-
 				System.arraycopy(orig.pdata, 0, pdata, 0, fullpw * fullph
 						* extent);
 			}
 		}
-
-		pstate = orig.pstate;
+		localState = orig.localState;
 	}
 
 	// Copy constructor which copies an existing array, but changes the
@@ -142,31 +175,35 @@ public abstract class Array2d<T> {
 
 			data = createDataArray(fullw * fullh * extent);
 
-			final int off = ((orig.width + 2 * orig.bwidth) * orig.bheight + orig.bwidth)
-					* extent;
-			final int stride = orig.bwidth * extent * 2;
+			if (orig.globalState == GLOBAL_VALID) {
+				// Timo: only copy the data if it is valid :-)				
+				final int off = ((orig.width + 2 * orig.bwidth) * orig.bheight + orig.bwidth)
+						* extent;
+				final int stride = orig.bwidth * extent * 2;
 
-			final int newOff = ((width + 2 * bwidth) * bheight + bwidth)
-					* extent;
-			final int newStride = bwidth * extent * 2;
+				final int newOff = ((width + 2 * bwidth) * bheight + bwidth)
+						* extent;
+				final int newStride = bwidth * extent * 2;
 
-			for (int j = 0; j < orig.height; j++) {
+				for (int j = 0; j < orig.height; j++) {
 
-				final int srcPtr = off + j * (orig.width * extent + stride);
+					final int srcPtr = off + j * (orig.width * extent + stride);
 
-				// This is not correct ?
-				// final int dstPtr = j * (width * extent);
+					// This is not correct ?
+					// final int dstPtr = j * (width * extent);
 
-				// FIXME Timo:This is also not correct ?
-				// final int dstPtr = j * (pwidth + 2 * newBW) * extent;
-				final int dstPtr = newOff + j * (width * extent + newStride);
+					// FIXME Timo:This is also not correct ?
+					// final int dstPtr = j * (pwidth + 2 * newBW) * extent;
+					final int dstPtr = newOff + j
+							* (width * extent + newStride);
 
-				System.arraycopy(orig.data, srcPtr, data, dstPtr, width
-						* extent);
+					System.arraycopy(orig.data, srcPtr, data, dstPtr, width
+							* extent);
+				}
 			}
 		}
 
-		gstate = orig.gstate;
+		globalState = orig.globalState;
 
 		if (orig.pdata != null) {
 
@@ -177,7 +214,6 @@ public abstract class Array2d<T> {
 			} else {
 				pwidth = orig.pwidth;
 				pheight = orig.pheight;
-				ptype = orig.ptype;
 
 				pdata = createDataArray((orig.pwidth + 2 * newBW)
 						* (orig.pheight + 2 * newBH) * extent);
@@ -200,7 +236,7 @@ public abstract class Array2d<T> {
 			}
 		}
 
-		pstate = orig.pstate;
+		localState = orig.localState;
 	}
 
 	protected void setDimensions(int w, int h, int bw, int bh, int e) {
@@ -231,18 +267,19 @@ public abstract class Array2d<T> {
 		return extent;
 	}
 
-	public Class<?> getElementType() {
-		return type;
-	}
+	// public Class<?> getElementType() {
+	// return type;
+	// }
 
 	public T getDataReadOnly() {
 		if (data == null) {
 			throw new RuntimeException("Cannot read data: no data available");
 		}
 
-		if (gstate != VALID) {
+		// if (globalState != GlobalState.VALID) {
+		if (globalState != GLOBAL_VALID) {
 			throw new RuntimeException("Cannot read data: state != VALID ("
-					+ gstate + ")");
+					+ globalState + ")");
 		}
 
 		return data;
@@ -261,9 +298,10 @@ public abstract class Array2d<T> {
 			throw new RuntimeException("Cannot read data: no data available");
 		}
 
-		if (gstate != VALID) {
+		// if (globalState != GlobalState.VALID) {
+		if (globalState != GLOBAL_VALID) {
 			throw new RuntimeException("Cannot read data: state != VALID ("
-					+ gstate + ")");
+					+ globalState + ")");
 		}
 
 		return data;
@@ -291,9 +329,10 @@ public abstract class Array2d<T> {
 					+ "no data available");
 		}
 
-		if (pstate != VALID) {
+		if (!(localState == LOCAL_FULL || localState == LOCAL_PARTIAL)) {
+			// TODO Timo: what about NOT_REDUCED?
 			throw new RuntimeException("Cannot read partial data: "
-					+ "state != VALID (" + pstate + ")");
+					+ "state != VALID (" + localState + ")");
 		}
 
 		return pdata;
@@ -304,7 +343,6 @@ public abstract class Array2d<T> {
 			throw new RuntimeException("Cannot write partial data: "
 					+ "no data available");
 		}
-
 		return pdata;
 	}
 
@@ -314,33 +352,32 @@ public abstract class Array2d<T> {
 					+ "no data available");
 		}
 
-		if (pstate != VALID) {
+		if (!(localState == LOCAL_FULL || localState == LOCAL_PARTIAL)) {
 			throw new RuntimeException("Cannot read/write partial data: "
-					+ "pstate != VALID (" + pstate + ")");
+					+ "pstate != VALID (" + localState + ")");
 		}
 
 		return pdata;
 	}
 
+	// public void setData(int width, int height, T data, GlobalState state) {
 	public void setData(int width, int height, T data, int state) {
 		// This assumes data size (pwidth+2*bwidth)*(pheight+2*bheight)
 
 		this.width = width;
 		this.height = height;
 		this.data = data;
-		this.gstate = state;
+		this.globalState = state;
 		// ptype = type;
 	}
 
-	public void setPartialData(int width, int height, T data, int state,
-			int type) {
+	public void setPartialData(int width, int height, T data, int state) {
 		// This assumes data size (pwidth+2*bwidth)*(pheight+2*bheight)
 
 		pwidth = width;
 		pheight = height;
 		pdata = data;
-		pstate = state;
-		ptype = type;
+		localState = state;
 	}
 
 	public boolean equalExtent(Pixel<?> p) {
@@ -350,32 +387,50 @@ public abstract class Array2d<T> {
 	public boolean equalSignature(Array2d<T> a) {
 		// NOTE: The array borders do not need to be equal in size!!!
 
-		return (width == a.getWidth() && height == a.getHeight()
-				&& extent == a.getExtent() && type == a.getElementType());
+		// return (width == a.getWidth() && height == a.getHeight()
+		// && extent == a.getExtent() && type == a.getElementType());
+
+		return (width == a.getWidth() && height == a.getHeight() && extent == a
+				.getExtent());
 	}
 
+	// public GlobalState getGlobalState() {
 	public int getGlobalState() {
-		return gstate;
+		return globalState;
 	}
 
+	// public void setGlobalState(GlobalState state) {
 	public void setGlobalState(int state) {
-		gstate = state;
+		globalState = state;
 	}
 
 	public int getLocalState() {
-		return pstate;
+		return localState;
 	}
 
 	public void setLocalState(int state) {
-		pstate = state;
+		localState = state;
 	}
 
-	public int getDistType() {
-		return ptype;
+	public void setReduceOperation(ReduceOp opcode) {
+		this.requiredReduceOp = opcode;
 	}
 
-	public void setDistType(int type) {
-		ptype = type;
+	public ReduceOp getReduceOperation() {
+		return requiredReduceOp;
+	}
+
+	public void bringToRoot() throws IOException {
+		// if (globalState == GlobalState.VALID) {
+		if (globalState == GLOBAL_VALID) {
+			return;
+		} else if (localState == LOCAL_NOT_REDUCED) {
+			PxSystem.get().reduceToRoot(this);
+		} else if (localState == LOCAL_PARTIAL) {
+			PxSystem.get().gather(this);
+		} else if (localState == LOCAL_FULL) {
+			PxSystem.get().gather(this);
+		}
 	}
 
 	/** * Clones ***************************************** */
@@ -388,7 +443,7 @@ public abstract class Array2d<T> {
 
 	public abstract T createDataArray(int size);
 
-	protected abstract Class<?> getDataType();
+//	protected abstract Class<?> getDataType();
 
 	/** * Creator from byte[] ***************************************** */
 
@@ -452,13 +507,27 @@ public abstract class Array2d<T> {
 
 	public abstract Array2d<T> absDiv(Array2d<T> a, boolean inpl);
 
+	/** * Reduction Operations *************************************** */
+
+	public abstract Array2d<T> pixMin();
+
+	public abstract Array2d<T> pixMax();
+
+	public abstract Array2d<T> pixSum();
+
+	public abstract Array2d<T> pixProduct();
+
+	public abstract Array2d<T> pixSup(); // supremum
+
+	public abstract Array2d<T> pixInf(); // infimum
+
 	/** * Convolution Operations ************************************* */
 
 	public abstract Array2d<T> convKernelSeparated2d(Array2d<T> kernelX,
-			Array2d<T> kernelY);
+			Array2d<T> kernelY, boolean inplace);
 
-	public final Array2d<T> convKernelSeparated(Array2d<T> kernel) {
-		return convKernelSeparated2d(kernel, kernel);
+	public final Array2d<T> convKernelSeparated(Array2d<T> kernel, boolean inplace) {
+		return convKernelSeparated2d(kernel, kernel, inplace);
 	}
 
 	public abstract Array2d<T> convolution(Array2d<T> kernel);
@@ -470,26 +539,25 @@ public abstract class Array2d<T> {
 
 	public abstract Array2d<T> convGauss2d(double sigmaX, int orderDerivX,
 			double truncationX, double sigmaY, int orderDerivY,
-			double truncationY);
+			double truncationY, boolean inplace);
 
-	public final Array2d<T> gauss(double sigma, double truncation) {
-		return gaussDerivative2d(sigma, 0, 0 , truncation);
-	
+	public final Array2d<T> gauss(double sigma, double truncation, boolean inplace) {
+		return gaussDerivative2d(sigma, 0, 0, truncation, inplace);
+
 	}
-	
+
 	public final Array2d<T> gaussDerivative2d(double sigma, int orderDerivX,
-			int orderDerivY, double truncation) {
-		return convGauss2d(sigma, orderDerivX, truncation, sigma, orderDerivY, truncation);
+			int orderDerivY, double truncation, boolean inplace) {
+		return convGauss2d(sigma, orderDerivX, truncation, sigma, orderDerivY,
+				truncation, inplace);
 	}
 
 	/** Anisotropic Convolution **/
-	
+
 	public abstract Array2d<T> convGaussAnisotropic2d(double sigmaU,
 			int orderDerivU, double truncationU, double sigmaV,
-			int orderDerivV, double truncationV, double phiRad);
-	
-	
-	
+			int orderDerivV, double truncationV, double phiRad, boolean inplace);
+
 	/** * Pixel Manipulation (NOT PARALLEL) *************************** */
 
 	// Timo: deprecated

@@ -14,7 +14,7 @@ import jorus.operations.bpo.Bpo;
 import jorus.parallel.PxSystem;
 
 public class PatBpo {
-	
+
 	public static <T> Array2d<T> dispatch(Array2d<T> s1, Array2d<T> s2,
 			boolean inplace, Bpo<T> bpo) {
 		Array2d<T> dst = s1;
@@ -22,54 +22,53 @@ public class PatBpo {
 		if (PxSystem.initialized()) { // run parallel
 
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
 
 			try {
 
-				if (s1.getLocalState() != Array2d.VALID
-						|| s1.getDistType() != Array2d.PARTIAL) {
+				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
 
-					if (s1.getGlobalState() != Array2d.NONE) {
+					// if (s1.getGlobalState() != GlobalState.NONE) {
 
-						if (rank == 0)
-							System.out.println("BPO SCATTER 1...");
-						px.scatter(dst);
+					// if (px.isRoot())
+					// System.out.println("BPO SCATTER 1...");
+					px.scatter(s1);
 
-					} else {
-						// Added -- J
-						//
-						// A hack that assumes dst is a target data structure
-						// which we do not need to
-						// scatter. We only initialize the local partitions.
+					// } else {
+					// Added -- J
+					//
+					// A hack that assumes dst is a target data structure
+					// which we do not need to
+					// scatter. We only initialize the local partitions.
 
-						final int pHeight = px.getPartHeight(s1.getHeight(),
-								rank);
+					// final int pHeight = px.getPartHeight(s1.getHeight(), px
+					// .myCPU());
 
-						final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
-								* (pHeight + s1.getBorderHeight() * 2)
-								* s1.getExtent();
-
-						s1.setPartialData(s1.getWidth(), pHeight, s1
-								.createDataArray(size), Array2d.VALID,
-								Array2d.PARTIAL);
-					}
+					// final int size = (s1.getWidth() + s1.getBorderWidth() *
+					// 2)
+					// * (pHeight + s1.getBorderHeight() * 2)
+					// * s1.getExtent();
+					//
+					// s1.setPartialData(s1.getWidth(), pHeight, s1
+					// .createDataArray(size), PartialState.PARTIAL);
+					// }
 				}
 
-				if (s2.getLocalState() != Array2d.VALID
-						|| s2.getDistType() != Array2d.PARTIAL) {
-					if (rank == 0)
-						System.out.println("BPO SCATTER 2...");
+				if (s2.getLocalState() != Array2d.LOCAL_PARTIAL) {
+					// if (px.isRoot())
+					// System.out.println("BPO SCATTER 2...");
 					px.scatter(s2);
 				}
 
-				if (!inplace)
+				if (!inplace) {
 					dst = s1.clone();
+				}
 
 				bpo.init(s1, s2, true);
 				bpo.doIt(dst.getPartialDataReadWrite(), s2
 						.getPartialDataReadOnly());
 
-				dst.setGlobalState(Array2d.INVALID);
+//				dst.setGlobalState(GlobalState.INVALID);
+				dst.setGlobalState(Array2d.GLOBAL_INVALID);
 
 				// if (PxSystem.myCPU() == 0)
 				// System.out.println("BPO GATHER...");
@@ -81,7 +80,8 @@ public class PatBpo {
 			}
 
 		} else {
-			if (s1.getGlobalState() == Array2d.NONE) {
+//			if (s1.getGlobalState() == GlobalState.NONE) {
+			if (s1.getGlobalState() == Array2d.GLOBAL_NONE) {
 				// Added -- J
 				//
 				// A hack that assumes dst is a target data structure which we
@@ -92,8 +92,10 @@ public class PatBpo {
 						* (s1.getHeight() + s1.getBorderHeight() * 2)
 						* s1.getExtent();
 
+//				s1.setData(s1.getWidth(), s1.getHeight(), s1
+//						.createDataArray(size), GlobalState.VALID);
 				s1.setData(s1.getWidth(), s1.getHeight(), s1
-						.createDataArray(size), Array2d.VALID);
+						.createDataArray(size), Array2d.GLOBAL_VALID);
 			}
 
 			if (!inplace)

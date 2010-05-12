@@ -23,7 +23,11 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 	protected int extent = 0;
 	protected int offset = 0;
 	protected int stride = 0;
+	protected int rowSize = 0;
+	protected int totalHeight = 0;
+	protected int totalWidth = 0;
 	protected int kernelWidth = 0; // kernel size for filtering
+	protected int halfKerSize = 0;
 	
 	protected double phiRad;
 	protected double sinPhi, cosPhi;		
@@ -45,10 +49,15 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 
 		width = parallel ? s1.getPartialWidth() : s1.getWidth();
 		height = parallel ? s1.getPartialHeight() : s1.getHeight();
-		offset = ((width + 2 * bw1) * s1.getBorderHeight() + bw1) * extent;
 		stride = bw1 * extent * 2;
+		rowSize = width * extent + stride;
+		totalHeight = height + 2 * s1.getBorderHeight();
+		totalWidth = width + 2 * s1.getBorderWidth();
+		offset = rowSize * s1.getBorderHeight() + (bw1 * extent);
+		
 
 		kernelWidth = ker1.getWidth();
+		halfKerSize = kernelWidth / 2;
 
 		if (extent == 1) {
 			if (ker1.getExtent() == 1) {

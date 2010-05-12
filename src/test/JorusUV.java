@@ -9,19 +9,20 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jorus.array.Array2dDoubles;
 import jorus.array.Array2dScalarDouble;
 import jorus.parallel.PxSystem;
 import jorus.pixel.PixelDouble;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class JorusUV {
+
+	private static final int ITER = 10; // number of iterations
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 5; // 15 for minimal measurement
+	private static final int STEP_THETA = 15; // 15 for minimal measurement
 
 	private static final double MIN_SX = 1; // 1.0 for minimal measurement
 	private static final double MAX_SX = 4; // 5.0 for minimal measurement
@@ -53,7 +54,7 @@ public class JorusUV {
 			throws Exception {
 		file = new File(fileName);
 
-		if (Integer.parseInt(poolSize) > 1) {
+		if (Integer.parseInt(poolSize) > 0) {
 			logger.info("Initializing PxSystem.");
 			try {
 				px = PxSystem.init(poolName, poolSize);
@@ -65,11 +66,11 @@ public class JorusUV {
 			logger.debug("nrCPUs = " + px.nrCPUs());
 			logger.debug("myCPU = " + px.myCPU());
 
-			master = (px.myCPU() == 0);
+			master = px.isRoot();
 
 			// Node 0 needs to provide an Ibis to contact the outside world.
 			if (master) {
-				logger.info("Local PxSystem initalized.");
+				logger.info("Local PxSystem initialized.");
 			}
 
 			// do initialisation now instead of after the first request is
@@ -127,10 +128,10 @@ public class JorusUV {
 						// 0, 0); // FIXME no rotation!
 						filtIm1 = (Array2dScalarDouble) source
 								.convGaussAnisotropic2d(sx, 2, 3, sy, 0, 3,
-										thetaRad);
+										thetaRad, false);
 						filtIm2 = (Array2dScalarDouble) source
 								.convGaussAnisotropic2d(sx, 0, 3, sy, 0, 3,
-										thetaRad);
+										thetaRad, true);
 						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
 								.negDiv(filtIm2, true);
 						contrastIm = (Array2dScalarDouble) contrastIm
@@ -145,6 +146,7 @@ public class JorusUV {
 			// resultImage.getData();
 			// logger.debug("convUV: theta = " + theta + " finished");
 		}
+		resultImage.bringToRoot();
 		return resultImage;
 	}
 
@@ -158,6 +160,16 @@ public class JorusUV {
 
 		computing = System.currentTimeMillis();
 
+		// FIXME prevent unnecessary scatters:
+		if (px != null) {
+			try {
+				px.scatter(array);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+
 		// FIXME do line detection here
 		Array2dScalarDouble result = null;
 		try {
@@ -167,27 +179,26 @@ public class JorusUV {
 			System.exit(1);
 		}
 		end = System.currentTimeMillis();
+
 		if (master) {
 			// logger.debug("Computation done");
 			System.out.println("Computation done");
 			// FIXME create output here
-		}
 
-		if (master) {
 			// logger.info("Processing took: " + (end - computing));
 			System.out.println("Processing took: " + (end - computing) + " ms");
-			if (px != null) {
-				px.printStatistics();
-			}
+
 			Array2dScalarDouble viewImage = result;// .clone(0,0);
 			try {
-				viewImage(viewImage.getDataReadOnly(), viewImage.getWidth(),
-						viewImage.getHeight(), name);
+
+//				viewImage(viewImage.getDataReadOnly(), viewImage.getWidth(),
+//						viewImage.getHeight(), name);
 			} catch (Exception e) {
 
 				e.printStackTrace();
 			}
 		}
+
 	}
 
 	private void run() {
@@ -213,19 +224,29 @@ public class JorusUV {
 			array = new Array2dScalarDouble(convertedImage.getWidth(),
 					convertedImage.getHeight(), data, false);
 
-			viewImage(array.getDataReadOnly(), array.getWidth() + 2
-					* array.getBorderWidth(), array.getHeight() + 2
-					* array.getBorderHeight(), "Import");
+			// if (master) {
+			// viewImage(array.getDataReadOnly(), array.getWidth() + 2
+			// * array.getBorderWidth(), array.getHeight() + 2
+			// * array.getBorderHeight(), "Import");
+			// }
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
 
-		for (int i = 0; i < 1; i++) {
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < ITER; i++) {
 			singleRun(array, master, "JorusUV " + i);
+			if (px != null) {
+				px.printStatistics();
+			}
 			System.gc();
 		}
-		System.err.println("double[] #" + Array2dDoubles.createCounter);
+		long totalTime = System.currentTimeMillis() - start;
+		System.err.println("Total execution time: " + totalTime + "ms");
+
+		// System.err.println("double[] #" + Array2dDoubles.createCounter);
+
 	}
 
 	private static void viewImage(double[] image, int width, int height,
@@ -236,8 +257,8 @@ public class JorusUV {
 		outputImage = new ibis.imaging4j.Image(Format.TGDOUBLEGREY, width,
 				height, buf.array());
 
-//		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
-//				Format.TGDOUBLEARGB), Format.ARGB32);
+		// outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
+		// Format.TGDOUBLEARGB), Format.ARGB32);
 		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
 				Format.GREY), Format.ARGB32);
 		ImageViewer viewer = new ImageViewer(outputImage.getWidth(),

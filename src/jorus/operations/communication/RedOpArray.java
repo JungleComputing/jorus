@@ -13,6 +13,6 @@ package jorus.operations.communication;
 
 public abstract class RedOpArray<T>
 {
-	public abstract void doIt(T target, T src);
-	public abstract void doItRange(T target, T src, int startIndex, int length);
+//	public abstract void doIt(T target, T src);
+//	public abstract void doItRange(T target, T src, int startIndex, int length);
 }

@@ -1,5 +1,7 @@
 package jorus.parallel.collectives;
 
+import java.io.IOException;
+
 import jorus.parallel.Broadcast;
 import jorus.parallel.PxSystem;
 
@@ -7,12 +9,12 @@ public class BinomialBroadcast<T> extends Broadcast<T> {
 
     /* binomial tree broadcast, good for small messages */ 
     
-    public BinomialBroadcast(PxSystem system, Class<?> c) throws Exception {
+    public BinomialBroadcast(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 
     @Override
-    public void broadcast(T data) throws Exception {
+    public void broadcast(T data) throws IOException {
  
         final int length = util.getLength(data);
         

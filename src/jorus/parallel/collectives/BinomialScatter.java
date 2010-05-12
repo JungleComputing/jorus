@@ -1,17 +1,19 @@
 package jorus.parallel.collectives;
 
+import java.io.IOException;
+
 import jorus.parallel.PxSystem;
 import jorus.parallel.Scatter;
 
 public class BinomialScatter<T> extends Scatter<T> { 
 
-    public BinomialScatter(PxSystem system, Class<?> c) throws Exception {
+    public BinomialScatter(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 
     @Override
     public void scatter(T send, int[] offsets, int[] sizes, 
-            T receive, int offset, int length) throws Exception {
+            T receive, int offset, int length) throws IOException {
 /*
         // int xSize = (globW + a.getBorderWidth() * 2) * a.getExtent();
         // int length = xSize * globH;

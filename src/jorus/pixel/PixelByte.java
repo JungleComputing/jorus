@@ -10,6 +10,11 @@
 package jorus.pixel;
 
 public class PixelByte extends Pixel<byte[]> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3323042560319651032L;
+
 	public PixelByte(byte[] array) {
 		super(array.length, array);
 	}

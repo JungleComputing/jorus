@@ -11,16 +11,16 @@
 package jorus.patterns;
 
 
-import jorus.weibull.CxWeibullFit;
+import jorus.array.Array2d;
+import jorus.array.Array2dScalarDouble;
 import jorus.parallel.PxSystem;
-import jorus.operations.communication.RedOpAddDoubleArray;
+import jorus.parallel.ReduceOp;
+import jorus.weibull.CxWeibullFit;
 
 
 public class PatTask
 {
     // This must be generalized to allow any type of task to be executed
-
-    private static final RedOpAddDoubleArray add = new RedOpAddDoubleArray();
     
     public static void dispatch(CxWeibullFit task, int iMax, int jMax)
     {
@@ -44,8 +44,17 @@ public class PatTask
                     }
                 }
                 for (int j=0; j<jMax; j++) {
-                    px.reduceArrayToRoot(task.getBetas(j), add);
-                    px.reduceArrayToRoot(task.getGammas(j), add);
+                	double[] betaArray = task.getBetas(j);
+                	Array2dScalarDouble betas = new Array2dScalarDouble(betaArray.length, 1, betaArray, false);
+                	betas.setPartialData(betaArray.length, 1, betaArray, Array2d.LOCAL_NOT_REDUCED);
+                	betas.setReduceOperation(ReduceOp.SUM);
+                	px.reduceToRoot(betas);
+                	
+                	double[] gammaArray = task.getGammas(j);
+                	Array2dScalarDouble gammas = new Array2dScalarDouble(gammaArray.length, 1, gammaArray, false);
+                	betas.setPartialData(gammaArray.length, 1, gammaArray, Array2d.LOCAL_NOT_REDUCED);
+                	gammas.setReduceOperation(ReduceOp.SUM);
+                	px.reduceToRoot(gammas);
                 }
             } catch (Exception e) {
                 System.err.println("Failed to perform operation!");

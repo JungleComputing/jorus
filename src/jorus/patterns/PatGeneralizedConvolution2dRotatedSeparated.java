@@ -26,7 +26,7 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 	public static <T> Array2d<T> dispatch(Array2d<T> sourceImage,
 			Array2d<T> kernelU, Array2d<T> kernelV, double phiRad,
 			GeneralizedConvolutionRotated1d<T> convolutionOperation,
-			SetBorder<T> borderOperation) {
+			SetBorder<T> borderOperation, boolean inplace) {
 
 		int borderWidthU = ((int) (((kernelU.getWidth() - 1) / 2) * Math
 				.abs(Math.cos(phiRad)))) + 1;
@@ -46,18 +46,19 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 		if (borderWidth > sourceImage.getBorderWidth()
 				|| borderHeight > sourceImage.getBorderHeight()) {
 			result = sourceImage.clone(borderWidth, borderHeight);
+		} else if(inplace) {
+			result = sourceImage;
 		} else {
 			result = sourceImage.clone();
 		}
 
 		if (PxSystem.initialized()) { // run parallel
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
+			final boolean root = px.isRoot();
 
 			try {
-				if (result.getLocalState() != Array2d.VALID
-						|| result.getDistType() != Array2d.PARTIAL) {
-					if (rank == 0)
+				if (result.getLocalState() != Array2d.LOCAL_PARTIAL) {
+					if (root)
 						logger.debug("GENCONV SCATTER 1...");
 					px.scatter(result);
 				}
@@ -73,7 +74,8 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 						.getDataReadOnly());
 				
 				
-				result.setGlobalState(Array2d.INVALID);
+//				result.setGlobalState(GlobalState.INVALID);
+				result.setGlobalState(Array2d.GLOBAL_INVALID);
 			} catch (Exception e) {
 				//
 			}

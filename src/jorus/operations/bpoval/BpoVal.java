@@ -16,16 +16,19 @@ public abstract class BpoVal<T> {
 	protected int height = 0;
 	protected int offset = 0;
 	protected int stride = 0;
+	protected int rowWidth = 0;
 
 	public void init(Array2d<T> s1, boolean parallel) {
 		int w1 = parallel ? s1.getPartialWidth() : s1.getWidth();
-		int e1 = s1.getExtent();
-		int bw1 = s1.getBorderWidth();
+		int extent = s1.getExtent();
+		int borderWidth = s1.getBorderWidth();
 
-		width = w1 * e1;
+		width = w1 * extent;
 		height = parallel ? s1.getPartialHeight() : s1.getHeight();
-		offset = ((w1 + 2 * bw1) * s1.getBorderHeight() + bw1) * e1;
-		stride = bw1 * e1 * 2;
+		stride = 2 * borderWidth * extent;
+		rowWidth = width + stride;
+		offset = rowWidth * s1.getBorderHeight() + (borderWidth * extent);
+		
 	}
 
 	public abstract void doIt(T dst);

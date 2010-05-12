@@ -47,8 +47,7 @@
 
 	</target>
 
-
-	<target name="all" depends="clean,prepare,compile,jar">
+	<target name="all" depends="clean,prepare,compile,jar,ibisc">
 	</target>
 
 	<!-- remove all generated code -->
@@ -62,5 +61,11 @@
 		<delete failonerror="false" file="${version}.zip" />
 	</target>
 
+	<target name="ibisc" depends="jar">
+		<java classname="ibis.compile.Ibisc" taskname="Ibisc" dir="${distdir}" failonerror="true" maxmemory="512M" fork="true">
+			<arg line="-verbose ${jar}" />
+			<classpath refid="default.classpath" />
+		</java>
+	</target>
 
 </project>

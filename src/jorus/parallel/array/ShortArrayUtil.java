@@ -1,6 +1,7 @@
 package jorus.parallel.array;
 
 import jorus.parallel.ArrayUtil;
+import jorus.parallel.ReduceOp;
 
 public class ShortArrayUtil extends ArrayUtil<short []> {
 
@@ -27,4 +28,17 @@ public class ShortArrayUtil extends ArrayUtil<short []> {
     @Override
     public void release(short[] array) {
     }
+
+    @Override
+	public void reduce(short[] target, short[] source, int extent,
+			ReduceOp reduceOp) throws UnsupportedOperationException {
+		reduce(target, source, extent, 0, target.length / extent, reduceOp);
+		
+	}
+
+	@Override
+	public void reduce(short[] target, short[] source, int extent, int offset,
+			int pixels, ReduceOp reduceOp) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
 }

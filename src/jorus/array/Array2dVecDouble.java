@@ -14,6 +14,11 @@ import jorus.operations.upo.UpoRGB2OOO;
 import jorus.patterns.*;
 
 public class Array2dVecDouble extends Array2dDoubles {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3630440685388095401L;
+
 	/*** Public Methods ***********************************************/
 
 	public Array2dVecDouble(Array2dVecDouble orig, int newBW, int newBH) {
@@ -58,7 +63,8 @@ public class Array2dVecDouble extends Array2dDoubles {
 		Array2dScalarDouble dst = new Array2dScalarDouble(width, height,
 				bwidth, bheight, false);
 
-		dst.setGlobalState(Array2d.NONE);
+//		dst.setGlobalState(GlobalState.NONE);
+		dst.setGlobalState(GLOBAL_NONE);
 
 		return (Array2dScalarDouble) PatBpo.dispatch(dst, this, true,
 				new BpoGetPixEltDouble(idx));

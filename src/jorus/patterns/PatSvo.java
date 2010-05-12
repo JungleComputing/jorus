@@ -26,19 +26,19 @@ public class PatSvo
         if (PxSystem.initialized()) {				// run parallel
             
             final PxSystem px = PxSystem.get();
-            final int rank = px.myCPU();
+//            final int rank = px.myCPU();
             
             try {
 
-                if (s1.getLocalState() != Array2d.VALID ||
-                        s1.getDistType() != Array2d.PARTIAL) {
+                if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
 
                     // The data structure has not been distibuted yet, or is no 
                     // longer valid
 
-                    if (s1.getGlobalState() != Array2d.NONE) { 
+//                    if (s1.getGlobalState() != GlobalState.NONE) { 
+                	if (s1.getGlobalState() != Array2d.GLOBAL_NONE) {
 
-                        if (rank == 0) System.out.println("SVO SCATTER 1...");
+                        if (px.isRoot()) System.out.println("SVO SCATTER 1...");
                         px.scatter(dst);
 
                     } else { 
@@ -47,14 +47,14 @@ public class PatSvo
                         // A hack that assumes dst is a target data structure which we do not need to 
                         // scatter. We only initialize the local partitions.
 
-                        final int pHeight = px.getPartHeight(s1.getHeight(),rank);
+                        final int pHeight = px.getPartHeight(s1.getHeight(),px.myCPU());
 
                         final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
                         * (pHeight + s1.getBorderHeight() * 2) 
                         * s1.getExtent();
 
                         s1.setPartialData(s1.getWidth(), pHeight, s1.createDataArray(size), 
-                                Array2d.VALID, Array2d.PARTIAL);
+                        		Array2d.LOCAL_PARTIAL);
                     }                    
                 }
 
@@ -62,14 +62,17 @@ public class PatSvo
 
                 svo.init(s1, true);
 
-                int start = px.getLclStartY(s1.getHeight(), rank);
+                int start = px.getLclStartY(s1.getHeight(), px.myCPU());
 
                 if ((y >= start) && (y < start+s1.getPartialHeight())) {
                     svo.doIt(dst.getPartialDataWriteOnly(), x, y - start);
                 }
 
-                if (dst.getGlobalState() != Array2d.NONE) { 
-                    dst.setGlobalState(Array2d.INVALID);
+//                if (dst.getGlobalState() != GlobalState.NONE) { 
+//                    dst.setGlobalState(GlobalState.INVALID);
+//                }
+                if (dst.getGlobalState() != Array2d.GLOBAL_NONE) { 
+                    dst.setGlobalState(Array2d.GLOBAL_INVALID);
                 }
 
 //              if (PxSystem.myCPU() == 0) System.out.println("SVO GATHER...");

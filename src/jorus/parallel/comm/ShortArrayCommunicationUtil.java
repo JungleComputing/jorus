@@ -2,6 +2,9 @@ package jorus.parallel.comm;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
+
 import jorus.parallel.CommunicationUtil;
 import jorus.parallel.PxSystem;
 
@@ -14,7 +17,7 @@ public class ShortArrayCommunicationUtil extends CommunicationUtil<short []> {
     @Override
     public void exchange(final int partner, 
             final short[] out, final int offOut, final int lenOut,
-            final short[] in, final int offIn, final int lenIn) throws Exception {
+            final short[] in, final int offIn, final int lenIn) throws IOException {
        
         if (rank > partner) {
             send(partner, out, offOut, lenOut);
@@ -26,14 +29,14 @@ public class ShortArrayCommunicationUtil extends CommunicationUtil<short []> {
     }
 
     @Override
-    public void receive(int src, short[] data, int off, int len) throws Exception {
+    public void receive(int src, short[] data, int off, int len) throws IOException {
         ReadMessage rm = system.receive(src);
         rm.readArray(data, off, len);
         rm.finish();
     }
 
     @Override
-    public void send(int dest, short[] data, int off, int len) throws Exception {
+    public void send(int dest, short[] data, int off, int len) throws IOException {
         WriteMessage wm = system.newMessage(dest);
         wm.writeArray(data, off, len);
         wm.finish();

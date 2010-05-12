@@ -1,16 +1,18 @@
 package jorus.parallel.collectives;
 
+import java.io.IOException;
+
 import jorus.parallel.Barrier;
 import jorus.parallel.PxSystem;
 
-public class FlatBarrier extends Barrier {
+public class FlatBarrier<T> extends Barrier<T> {
 
-    public FlatBarrier(PxSystem system, Class c) throws Exception {
+    public FlatBarrier(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 
     @Override
-    public void barrier() throws Exception {
+    public void barrier() throws IOException {
         
         if (rank == 0) { 
             for (int partner = 1; partner < size; partner++) {

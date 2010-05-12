@@ -10,6 +10,11 @@
 package jorus.pixel;
 
 public class PixelInt extends Pixel<int[]> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4191237930561403016L;
+
 	public PixelInt(int[] array) {
 		super(array.length, array);
 	}

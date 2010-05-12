@@ -13,18 +13,18 @@ package jorus.operations.communication;
 
 public class RedOpAddDoubleArray extends RedOpArray<double[]>
 {
-	public void doIt(double[] target, double[] src)
-	{
-		for (int i=0; i<target.length; i++) {
-			target[i] += src[i];
-		}
-	}
-	
-	@Override
-	public void doItRange(double[] target, double[] src, int startIndex,int length) {
-		for (int i=startIndex; i<startIndex+length; i++) {
-			target[i] += src[i];
-		}
-	}
+//	public void doIt(double[] target, double[] src)
+//	{
+//		for (int i=0; i<target.length; i++) {
+//			target[i] += src[i];
+//		}
+//	}
+//	
+//	@Override
+//	public void doItRange(double[] target, double[] src, int startIndex,int length) {
+//		for (int i=startIndex; i<startIndex+length; i++) {
+//			target[i] += src[i];
+//		}
+//	}
 
 }

@@ -11,7 +11,7 @@
 package jorus.operations.communication;
 
 
-public class RedOpAddDouble extends RedOp<Double>
+public class RedOpAddDouble extends ReduceToRoot<Double>
 {
 	public Double doIt(Double val1, Double val2)
 	{

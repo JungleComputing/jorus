@@ -1,6 +1,7 @@
 package jorus.parallel.array;
 
 import jorus.parallel.ArrayUtil;
+import jorus.parallel.ReduceOp;
 
 public class LongArrayUtil extends ArrayUtil<long []> {
 
@@ -27,5 +28,18 @@ public class LongArrayUtil extends ArrayUtil<long []> {
     @Override
     public void release(long[] array) {
     }
+
+    @Override
+	public void reduce(long[] target, long[] source, int extent,
+			ReduceOp reduceOp) throws UnsupportedOperationException {
+		reduce(target, source, extent, 0, target.length / extent, reduceOp);
+		
+	}
+
+	@Override
+	public void reduce(long[] target, long[] source, int extent, int offset,
+			int pixels, ReduceOp reduceOp) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
 }
 

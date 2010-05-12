@@ -44,12 +44,10 @@ public class PatGeneralizedConvolution1dRotated {
 
 		if (PxSystem.initialized()) { // run parallel
 			final PxSystem px = PxSystem.get();
-			final int rank = px.myCPU();
 
 			try {
-				if (result.getLocalState() != Array2d.VALID
-						|| result.getDistType() != Array2d.PARTIAL) {
-					if (rank == 0)
+				if (result.getLocalState() != Array2d.LOCAL_PARTIAL) {
+					if (px.isRoot())
 						logger.debug("GENCONV SCATTER 1...");
 					px.scatter(result);
 				}
@@ -63,7 +61,8 @@ public class PatGeneralizedConvolution1dRotated {
 								.getPartialDataReadOnly(), kernel
 								.getDataReadOnly());
 
-				result.setGlobalState(Array2d.INVALID);
+//				result.setGlobalState(GlobalState.INVALID);
+				result.setGlobalState(Array2d.GLOBAL_INVALID);
 			} catch (Exception e) {
 				//
 			}

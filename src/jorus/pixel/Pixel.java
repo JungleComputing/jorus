@@ -8,8 +8,14 @@
  */
 
 package jorus.pixel;
+
+import java.io.Serializable;
  
- public abstract class Pixel<T> {
+ public abstract class Pixel<T> implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 468196973062488937L;
 	/*** Private Properties *******************************************/
 
 	protected int index;

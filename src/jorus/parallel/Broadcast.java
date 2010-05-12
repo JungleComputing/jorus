@@ -2,7 +2,7 @@ package jorus.parallel;
 
 public abstract class Broadcast<T> extends Collective<T> {
 
-    protected Broadcast(PxSystem system, Class c) throws Exception {
+    protected Broadcast(PxSystem system, Class<T> c) throws Exception {
         super(system, c);
     }
 

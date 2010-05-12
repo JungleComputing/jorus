@@ -14,6 +14,11 @@ import jorus.patterns.PatBpoArrayToHistArray;
 import jorus.patterns.PatBpoToHist;
 
 public class Array2dScalarDouble extends Array2dDoubles {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5366288690791184319L;
+
 	/** * Public Methods ********************************************** */
 
 	public Array2dScalarDouble(Array2dScalarDouble orig, int newBW, int newBH) {
