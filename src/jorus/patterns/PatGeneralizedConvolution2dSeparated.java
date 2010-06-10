@@ -40,25 +40,28 @@ public class PatGeneralizedConvolution2dSeparated {
 
 			// run parallel
 			try {
-				if (dst.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (dst.getState() != Array2d.LOCAL_PARTIAL) {
 					if (root)
 						System.out.println("GENCONV SCATTER 1...");
 					px.scatter(dst);
+				}
+				if (kernelX.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernelX);
+				}
+				if (kernelY.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernelY);
 				}
 
 				PatSetBorder.dispatch(dst, numX, 0, sbo);
 				Array2d<T> tmp = dst.clone();
 				gco.init(dst, kernelX, 0, true);
-				gco.doIt(tmp.getPartialDataWriteOnly(), dst
-						.getPartialDataReadOnly(), kernelX.getDataReadOnly());
+				gco.doIt(tmp.getData(), dst
+						.getData(), kernelX.getData());
 
 				PatSetBorder.dispatch(tmp, 0, numY, sbo);
 				gco.init(dst, kernelY, 1, true);
-				gco.doIt(dst.getPartialDataWriteOnly(), tmp
-						.getPartialDataReadOnly(), kernelY.getDataReadOnly());
-
-//				dst.setGlobalState(GlobalState.INVALID);
-				dst.setGlobalState(Array2d.GLOBAL_INVALID);
+				gco.doIt(dst.getData(), tmp
+						.getData(), kernelY.getData());
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
@@ -69,15 +72,14 @@ public class PatGeneralizedConvolution2dSeparated {
 			PatSetBorder.dispatch(dst, numX, 0, sbo);
 			Array2d<T> tmp = dst.clone();
 			gco.init(dst, kernelX, 0, false);
-			gco.doIt(tmp.getDataWriteOnly(), dst.getDataReadOnly(), kernelX
-					.getDataReadOnly());
+			gco.doIt(tmp.getData(), dst.getData(), kernelX
+					.getData());
 
 			PatSetBorder.dispatch(tmp, 0, numY, sbo);
 			gco.init(dst, kernelY, 1, false);
-			gco.doIt(dst.getDataWriteOnly(), tmp.getDataReadOnly(), kernelY
-					.getDataReadOnly());
+			gco.doIt(dst.getData(), tmp.getData(), kernelY
+					.getData());
 		}
-
 		return dst;
 	}
 }

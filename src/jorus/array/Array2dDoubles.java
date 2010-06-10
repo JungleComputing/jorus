@@ -227,87 +227,99 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	/*** Reduction Operations *****************************************/
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixInf()
 	 */
 	@Override
 	public Array2d<double[]> pixInf() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceInfDouble());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixMax()
 	 */
 	@Override
 	public Array2d<double[]> pixMax() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceMaxDouble());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixMin()
 	 */
 	@Override
 	public Array2d<double[]> pixMin() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceMinDouble());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixProduct()
 	 */
 	@Override
 	public Array2d<double[]> pixProduct() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceProductDouble());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixSum()
 	 */
 	@Override
 	public Array2d<double[]> pixSum() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceSumDouble());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jorus.array.Array2d#pixSup()
 	 */
 	@Override
 	public Array2d<double[]> pixSup() {
 		Array2dDoubles result;
-		if(this instanceof Array2dScalarDouble) {
+		if (this instanceof Array2dScalarDouble) {
 			result = new Array2dScalarDouble(1, 1, 0, 0, false);
 		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, extent, false);
+			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
 		}
 		return PatReduce.dispatch(result, this, new ReduceSupDouble());
 	}
@@ -326,12 +338,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 		}
 		// TODO what about the accuracy??
 		Array2dScalarDouble gx = Gaussian1d.create(sigmaX, orderDerivX, 0.995,
-				(int) (truncationX * sigmaX * 2 + 1), width);
+				(int) (truncationX * sigmaX * 2 + 1), getWidth());
 		Array2dScalarDouble gy = Gaussian1d.create(sigmaY, orderDerivY, 0.995,
-				(int) (truncationY * sigmaY * 2 + 1), height);
+				(int) (truncationY * sigmaY * 2 + 1), getHeight());
 
-		return PatGeneralizedConvolution2dSeparated.dispatch(this, gx, gy,
-				new Convolution1dDouble(), new SetBorderMirrorDouble(), inplace);
+		return PatGeneralizedConvolution2dSeparated
+				.dispatch(this, gx, gy, new Convolution1dDouble(),
+						new SetBorderMirrorDouble(), inplace);
 	}
 
 	@Override
@@ -346,10 +359,9 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 		}
 		// TODO what about the accuracy??
 		Array2dScalarDouble gx = Gaussian1d.create(sigmaU, orderDerivU, 0.995,
-				(int) (truncationU * sigmaU * 2 + 1), width);
+				(int) (truncationU * sigmaU * 2 + 1), getWidth());
 		Array2dScalarDouble gy = Gaussian1d.create(sigmaV, orderDerivV, 0.995,
-				(int) (truncationV * sigmaV * 2 + 1), height);
-
+				(int) (truncationV * sigmaV * 2 + 1), getHeight());
 		return PatGeneralizedConvolution2dRotatedSeparated.dispatch(this, gx,
 				gy, phiRad, new ConvolutionRotated1dDouble(),
 				new SetBorderMirrorDouble(), inplace);
@@ -358,9 +370,9 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	@Override
 	public Array2d<double[]> convKernelSeparated2d(Array2d<double[]> kernelX,
 			Array2d<double[]> kernelY, boolean inplace) {
-		return PatGeneralizedConvolution2dSeparated
-				.dispatch(this, kernelX, kernelY, new Convolution1dDouble(),
-						new SetBorderMirrorDouble(), inplace);
+		return PatGeneralizedConvolution2dSeparated.dispatch(this, kernelX,
+				kernelY, new Convolution1dDouble(),
+				new SetBorderMirrorDouble(), inplace);
 
 	}
 
@@ -388,17 +400,40 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 				new SetBorderMirrorDouble());
 	}
 
-//	@Override
-//	protected Class<?> getDataType() {
-//		return double.class;
-//	}
+	// @Override
+	// protected Class<?> getDataType() {
+	// return double.class;
+	// }
 
-	// public static int createCounter = 0; // TODO debug counter
+	private static long createCounter = 0; // TODO debug counter
+
+	public static long getAndResetcreateCounter() {
+		long tmp = createCounter;
+		createCounter = 0;
+		return tmp;
+	}
+
+	public int getDataArraySize() {
+		double[] data = getData();
+		if (data == null) {
+			return -1;
+		} else {
+			return data.length;
+		}
+	}
 
 	@Override
 	public double[] createDataArray(int size) {
 		// System.err.println("double[] #" + ++createCounter);
-		// createCounter++;
+		createCounter++;
 		return new double[size];
+	}
+
+	@Override
+	protected double[] copyArray() {
+		if (getData() == null) {
+			return null;
+		}
+		return getData().clone();
 	}
 }

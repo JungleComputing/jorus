@@ -267,7 +267,7 @@ public class CxWeibull {
 
 		Array2dVecDouble input = new Array2dVecDouble(width, height, 0, 0, 3,
 				false);
-		double[] inputArray = input.getDataReadWrite();
+		double[] inputArray = input.getData();
 		for(int i = 0; i < bArray.length; i++) {
 			inputArray[i] = (double) (bArray[i] & 0xFF);
 		}

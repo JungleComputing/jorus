@@ -25,37 +25,11 @@ public class PatBpo {
 
 			try {
 
-				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
-
-					// if (s1.getGlobalState() != GlobalState.NONE) {
-
-					// if (px.isRoot())
-					// System.out.println("BPO SCATTER 1...");
+				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
 					px.scatter(s1);
-
-					// } else {
-					// Added -- J
-					//
-					// A hack that assumes dst is a target data structure
-					// which we do not need to
-					// scatter. We only initialize the local partitions.
-
-					// final int pHeight = px.getPartHeight(s1.getHeight(), px
-					// .myCPU());
-
-					// final int size = (s1.getWidth() + s1.getBorderWidth() *
-					// 2)
-					// * (pHeight + s1.getBorderHeight() * 2)
-					// * s1.getExtent();
-					//
-					// s1.setPartialData(s1.getWidth(), pHeight, s1
-					// .createDataArray(size), PartialState.PARTIAL);
-					// }
 				}
 
-				if (s2.getLocalState() != Array2d.LOCAL_PARTIAL) {
-					// if (px.isRoot())
-					// System.out.println("BPO SCATTER 2...");
+				if (s2.getState() != Array2d.LOCAL_PARTIAL) {
 					px.scatter(s2);
 				}
 
@@ -64,24 +38,14 @@ public class PatBpo {
 				}
 
 				bpo.init(s1, s2, true);
-				bpo.doIt(dst.getPartialDataReadWrite(), s2
-						.getPartialDataReadOnly());
-
-//				dst.setGlobalState(GlobalState.INVALID);
-				dst.setGlobalState(Array2d.GLOBAL_INVALID);
-
-				// if (PxSystem.myCPU() == 0)
-				// System.out.println("BPO GATHER...");
-				// PxSystem.gatherOFT(dst);
-
+				bpo.doIt(dst.getData(), s2.getData());
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
 			}
 
 		} else {
-//			if (s1.getGlobalState() == GlobalState.NONE) {
-			if (s1.getGlobalState() == Array2d.GLOBAL_NONE) {
+			if (s1.getState() == Array2d.NONE) {
 				// Added -- J
 				//
 				// A hack that assumes dst is a target data structure which we
@@ -92,10 +56,7 @@ public class PatBpo {
 						* (s1.getHeight() + s1.getBorderHeight() * 2)
 						* s1.getExtent();
 
-//				s1.setData(s1.getWidth(), s1.getHeight(), s1
-//						.createDataArray(size), GlobalState.VALID);
-				s1.setData(s1.getWidth(), s1.getHeight(), s1
-						.createDataArray(size), Array2d.GLOBAL_VALID);
+				s1.setData(s1.getWidth(), s1.getHeight(), s1.createDataArray(size), Array2d.GLOBAL_VALID);
 			}
 
 			if (!inplace)
@@ -103,9 +64,8 @@ public class PatBpo {
 
 			// run sequential
 			bpo.init(s1, s2, false);
-			bpo.doIt(dst.getDataReadWrite(), s2.getDataReadOnly());
+			bpo.doIt(dst.getData(), s2.getData());
 		}
-
 		return dst;
 	}
 }

@@ -11,7 +11,7 @@ public abstract class ReduceToAll<T> extends Collective<T> {
 	}
 
 	public void reduceToAll(Array2d<T> data) throws IOException {
-		reduceToAll(data.getPartialDataReadWrite(), data.getExtent(), data
+		reduceToAll(data.getData(), data.getExtent(), data
 				.getReduceOperation());
 	}
 

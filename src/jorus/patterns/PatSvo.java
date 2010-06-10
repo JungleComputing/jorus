@@ -7,90 +7,80 @@
  *
  */
 
-
 package jorus.patterns;
-
 
 import jorus.array.Array2d;
 import jorus.operations.svo.Svo;
 import jorus.parallel.PxSystem;
 
+public class PatSvo {
+	public static <T> Array2d<T> dispatch(Array2d<T> s1, int x, int y,
+			boolean inplace, Svo<T> svo) {
+		Array2d<T> dst = s1;
 
-public class PatSvo
-{
-    public static <T> Array2d<T> dispatch(Array2d<T> s1, int x, int y,
-            boolean inplace, Svo<T> svo)
-    {
-        Array2d<T> dst = s1;
+		if (PxSystem.initialized()) { // run parallel
 
-        if (PxSystem.initialized()) {				// run parallel
-            
-            final PxSystem px = PxSystem.get();
-//            final int rank = px.myCPU();
-            
-            try {
+			final PxSystem px = PxSystem.get();
+			// final int rank = px.myCPU();
 
-                if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
+			try {
 
-                    // The data structure has not been distibuted yet, or is no 
-                    // longer valid
+				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
 
-//                    if (s1.getGlobalState() != GlobalState.NONE) { 
-                	if (s1.getGlobalState() != Array2d.GLOBAL_NONE) {
+					// The data structure has not been distibuted yet, or is no
+					// longer valid
 
-                        if (px.isRoot()) System.out.println("SVO SCATTER 1...");
-                        px.scatter(dst);
+					// if (s1.getGlobalState() != GlobalState.NONE) {
+					if (s1.getState() != Array2d.NONE) {
 
-                    } else { 
-                        // Added -- J
-                        //
-                        // A hack that assumes dst is a target data structure which we do not need to 
-                        // scatter. We only initialize the local partitions.
+						if (px.isRoot())
+							System.out.println("SVO SCATTER 1...");
+						px.scatter(dst);
 
-                        final int pHeight = px.getPartHeight(s1.getHeight(),px.myCPU());
+					} else {
+						// Added -- J
+						//
+						// A hack that assumes dst is a target data structure
+						// which we do not need to
+						// scatter. We only initialize the local partitions.
 
-                        final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
-                        * (pHeight + s1.getBorderHeight() * 2) 
-                        * s1.getExtent();
+						final int pHeight = px.getPartHeight(s1.getHeight(), px
+								.myCPU());
 
-                        s1.setPartialData(s1.getWidth(), pHeight, s1.createDataArray(size), 
-                        		Array2d.LOCAL_PARTIAL);
-                    }                    
-                }
+						final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
+								* (pHeight + s1.getBorderHeight() * 2)
+								* s1.getExtent();
 
-                if (!inplace) dst = s1.clone();
+						s1.setPartialData(s1.getWidth(), pHeight, s1
+								.createDataArray(size), Array2d.LOCAL_PARTIAL);
+					}
+				}
 
-                svo.init(s1, true);
+				if (!inplace)
+					dst = s1.clone();
 
-                int start = px.getLclStartY(s1.getHeight(), px.myCPU());
+				svo.init(s1, true);
 
-                if ((y >= start) && (y < start+s1.getPartialHeight())) {
-                    svo.doIt(dst.getPartialDataWriteOnly(), x, y - start);
-                }
+				int start = px.getLclStartY(s1.getHeight(), px.myCPU());
 
-//                if (dst.getGlobalState() != GlobalState.NONE) { 
-//                    dst.setGlobalState(GlobalState.INVALID);
-//                }
-                if (dst.getGlobalState() != Array2d.GLOBAL_NONE) { 
-                    dst.setGlobalState(Array2d.GLOBAL_INVALID);
-                }
+				if ((y >= start) && (y < start + s1.getPartialHeight())) {
+					svo.doIt(dst.getData(), x, y - start);
+				}
 
-//              if (PxSystem.myCPU() == 0) System.out.println("SVO GATHER...");
-//              PxSystem.gatherOFT(dst);
+			} catch (Exception e) {
+				System.err.println("Failed to perform operation!");
+				e.printStackTrace(System.err);
+			}
 
-            } catch (Exception e) {
-                System.err.println("Failed to perform operation!");
-                e.printStackTrace(System.err);
-            }
+		} else { // run sequential
 
-        } else {									// run sequential
+			if (!inplace)
+				dst = s1.clone();
 
-            if (!inplace) dst = s1.clone();
+			svo.init(s1, false);
+			svo.doIt(dst.getData(), x, y);
+		}
 
-            svo.init(s1, false);
-            svo.doIt(dst.getDataWriteOnly(), x, y);
-        }
-
-        return dst;
-    }
+		return dst;
+	}
 }

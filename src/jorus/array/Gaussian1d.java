@@ -56,8 +56,9 @@ public class Gaussian1d {
 
 		Array2dScalarDouble tmp = new Array2dScalarDouble(fsize, 1, 0, 0, true);
 
-		makeFilter(tmp.getDataWriteOnly(), sigma, deri, fsize);
+		makeFilter(tmp.getData(), sigma, deri, fsize);
 		
+		tmp.setPartialData(fsize, 1, tmp.getData(), Array2d.LOCAL_FULL);
 //		double[] filter = tmp.getDataWriteOnly();
 //		double pos = 0;
 //		double neg = 0;

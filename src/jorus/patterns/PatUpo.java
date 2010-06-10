@@ -47,21 +47,16 @@ public class PatUpo {
 		if (PxSystem.initialized()) { // run parallel
 
 			final PxSystem px = PxSystem.get();
-//			final int rank = px.myCPU();
-//			final int size = px.nrCPUs();
 
 			try {
 
-				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
 
 					// The data structure has not been distibuted yet, or is no
 					// longer valid
 
-//					if (s1.getGlobalState() != GlobalState.NONE) {
-					if (s1.getGlobalState() != Array2d.GLOBAL_NONE) {
+					if (s1.getState() != Array2d.NONE) {
 
-						// if (PxSystem.myCPU() == 0) System.out.println("UPO
-						// SCATTER 1...");
 						px.scatter(dst);
 
 					} else {
@@ -87,37 +82,25 @@ public class PatUpo {
 					dst = s1.clone();
 
 				upo.init(s1, true);
-				upo.doIt(dst.getPartialDataReadWrite());
-//				dst.setGlobalState(GlobalState.INVALID);
-				dst.setGlobalState(Array2d.GLOBAL_INVALID);
-
-				// if (PxSystem.myCPU() == 0) System.out.println("UPO
-				// GATHER...");
-				// PxSystem.gatherOFT(dst);
-
+				upo.doIt(dst.getData());
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
 			}
 
 		} else { // run sequential
-//			if (s1.getGlobalState() == GlobalState.NONE) {
-			if (s1.getGlobalState() == Array2d.GLOBAL_NONE) {
+			if (s1.getState() == Array2d.NONE) {
 				final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
 						* (s1.getHeight() + s1.getBorderHeight() * 2)
 						* s1.getExtent();
 
-//				s1.setData(s1.getWidth(), s1.getHeight(), s1
-//						.createDataArray(length), GlobalState.VALID);
 				s1.setData(s1.getWidth(), s1.getHeight(), s1
 						.createDataArray(length), Array2d.GLOBAL_VALID);
 			}
 
 			upo.init(s1, false);
-			upo.doIt(dst.getDataReadWrite());
-
+			upo.doIt(dst.getData());
 		}
-
 		return dst;
 	}
 }

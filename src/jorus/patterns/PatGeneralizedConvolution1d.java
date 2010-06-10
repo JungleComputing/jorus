@@ -14,8 +14,6 @@ import jorus.operations.communication.SetBorder;
 import jorus.operations.generalizedconvolution.GeneralizedConvolution1d;
 import jorus.parallel.PxSystem;
 
-//import array.CxArray2dScalarDouble;
-
 public class PatGeneralizedConvolution1d {
 	public static <T> Array2d<T> dispatch(Array2d<T> sourceImage,
 			Array2d<T> kernel,
@@ -36,22 +34,19 @@ public class PatGeneralizedConvolution1d {
 
 			// run parallel
 			try {
-				if (sourceImage.getLocalState() != Array2d.LOCAL_PARTIAL) {
-//					if (px.isRoot())
-//						System.out.println("GENCONV SCATTER 1...");
+				if (sourceImage.getState() != Array2d.LOCAL_PARTIAL) {
 					px.scatter(sourceImage);
+				}
+				if (kernel.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernel);
 				}
 
 				PatSetBorder.dispatch(sourceImage, requiredBorderSize, 0,
 						borderOperation);
 				resultImage = sourceImage.clone();
 				convolutionOperation.init(sourceImage, kernel, dimension, true);
-				convolutionOperation.doIt(
-						resultImage.getPartialDataWriteOnly(), sourceImage
-								.getPartialDataReadOnly(), kernel
-								.getDataReadOnly());
-
-				resultImage.setGlobalState(Array2d.GLOBAL_INVALID);
+				convolutionOperation.doIt(resultImage.getData(), sourceImage
+						.getData(), kernel.getData());
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
@@ -61,9 +56,8 @@ public class PatGeneralizedConvolution1d {
 					borderOperation);
 			resultImage = sourceImage.clone();
 			convolutionOperation.init(sourceImage, kernel, dimension, true);
-			convolutionOperation.doIt(resultImage.getPartialDataWriteOnly(),
-					sourceImage.getPartialDataReadOnly(), kernel
-							.getDataReadOnly());
+			convolutionOperation.doIt(resultImage.getData(), sourceImage
+					.getData(), kernel.getData());
 		}
 		return resultImage;
 	}

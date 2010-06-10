@@ -17,8 +17,6 @@ import jorus.parallel.PxSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import array.CxArray2dScalarDouble;
-
 public class PatGeneralizedConvolution2dRotatedSeparated {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PatGeneralizedConvolution2dRotatedSeparated.class);
@@ -57,25 +55,27 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 			final boolean root = px.isRoot();
 
 			try {
-				if (result.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (result.getState() != Array2d.LOCAL_PARTIAL) {
 					if (root)
 						logger.debug("GENCONV SCATTER 1...");
 					px.scatter(result);
 				}
+				if (kernelU.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernelU);
+				}
+				if (kernelV.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernelV);
+				}
 				PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
 				Array2d<T> tmp = result.clone();
 				convolutionOperation.init(result, kernelU, phiRad, true);
-				convolutionOperation.doIt(tmp.getPartialDataWriteOnly(), result.getPartialDataReadOnly(), kernelU
-						.getDataReadOnly());
+				convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
+						.getData());
 
 				PatSetBorder.dispatch(tmp, borderWidthV, borderHeightV, borderOperation);
 				convolutionOperation.init(tmp, kernelV, phiRad + 0.5 * Math.PI, true); //FIXME + or - 0.5 * PI ????
-				convolutionOperation.doIt(result.getPartialDataWriteOnly(), tmp.getPartialDataReadOnly(), kernelV
-						.getDataReadOnly());
-				
-				
-//				result.setGlobalState(GlobalState.INVALID);
-				result.setGlobalState(Array2d.GLOBAL_INVALID);
+				convolutionOperation.doIt(result.getData(), tmp.getData(), kernelV
+						.getData());
 			} catch (Exception e) {
 				//
 			}
@@ -84,13 +84,13 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 			PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
 			Array2d<T> tmp = result.clone();
 			convolutionOperation.init(result, kernelU, phiRad, false);
-			convolutionOperation.doIt(tmp.getDataWriteOnly(), result.getDataReadOnly(), kernelU
-					.getDataReadOnly());
+			convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
+					.getData());
 
 			PatSetBorder.dispatch(tmp, borderWidthV, borderHeightV, borderOperation);
 			convolutionOperation.init(tmp, kernelV, phiRad + 0.5 * Math.PI, false); //FIXME + or - 0.5 * PI ????
-			convolutionOperation.doIt(result.getDataWriteOnly(), tmp.getDataReadOnly(), kernelV
-					.getDataReadOnly());
+			convolutionOperation.doIt(result.getData(), tmp.getData(), kernelV
+					.getData());
 		}
 
 		return result;

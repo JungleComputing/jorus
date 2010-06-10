@@ -115,7 +115,7 @@ public class JorusTest {
 
 			if (master) {
 				try {
-					viewImage(array.getDataReadOnly(), array.getWidth(), array
+					viewImage(array.getData(), array.getWidth(), array
 							.getHeight(), "1");
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -148,7 +148,7 @@ public class JorusTest {
 		// array = (Array2dScalarDouble) array.clone(0, 0);
 		if (master) {
 			try {
-				viewImage(array.getDataReadOnly(), array.getWidth(), array
+				viewImage(array.getData(), array.getWidth(), array
 						.getHeight(), "2");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

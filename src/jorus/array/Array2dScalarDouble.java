@@ -127,4 +127,12 @@ public class Array2dScalarDouble extends Array2dDoubles {
 	public Array2dScalarDouble clone(int newBorderWidth, int newBorderHeight) {
 		return new Array2dScalarDouble(this, newBorderWidth, newBorderHeight);
 	}
+
+	@Override
+	public Array2dScalarDouble prepareForSideChannel() {
+		Array2dScalarDouble result = new Array2dScalarDouble(getWidth(), getHeight(), getBorderWidth(), getBorderHeight(), false);
+		result.setState(GLOBAL_VALID);
+		setState(GLOBAL_VALID);
+		return result;
+	}
 }

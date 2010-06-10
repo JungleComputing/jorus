@@ -17,6 +17,8 @@ public class PatReduce {
 
 	public static <T> Array2d<T> dispatch(Array2d<T> destination,
 			Array2d<T> source, Reduce<T> reduceOperation) {
+		// FIXME check data formats of destination structure. Those are not
+		// consistent for sequential and parallel algorithm
 
 		if (PxSystem.initialized()) { // run parallel
 
@@ -24,28 +26,27 @@ public class PatReduce {
 
 			try {
 
-				if (destination.getLocalState() != Array2d.LOCAL_FULL) {
+				if (destination.getState() != Array2d.LOCAL_FULL) {
 					destination.setPartialData(destination.getWidth(),
 							destination.getHeight(), destination
 									.createDataArray(destination.getWidth()
 											* destination.getHeight()
 											* destination.getExtent()),
-											Array2d.LOCAL_NOT_REDUCED);
+							Array2d.LOCAL_NOT_REDUCED);
 
 				} else {
-					destination.setLocalState(Array2d.LOCAL_NOT_REDUCED);
+					destination.setPartialData(destination.getWidth(),
+							destination.getHeight(), destination.getData(),
+							Array2d.LOCAL_NOT_REDUCED);
 				}
 
-				if (source.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (source.getState() != Array2d.LOCAL_PARTIAL) {
 					px.scatter(source);
 				}
 
 				reduceOperation.init(source, true);
-				reduceOperation.doIt(destination.getPartialDataReadWrite(),
-						source.getPartialDataReadOnly());
+				reduceOperation.doIt(destination.getData(), source.getData());
 
-//				destination.setGlobalState(GlobalState.INVALID);
-				destination.setGlobalState(Array2d.GLOBAL_INVALID);
 				destination.setReduceOperation(reduceOperation.getOpcode());
 				// localState already set
 			} catch (Exception e) {
@@ -55,16 +56,12 @@ public class PatReduce {
 
 		} else {
 			// if (destination.getGlobalState() == GlobalState.NONE) {
-			if (destination.getGlobalState() == Array2d.GLOBAL_NONE) {
+			if (destination.getState() == Array2d.NONE) {
 				// Added -- J
 				//
 				// A hack that assumes dst is a target data structure which we
 				// do not need to
 				// scatter. We only initialize the local partitions.
-
-//				destination.setData(1, 1, destination
-//						.createDataArray(destination.getExtent()),
-//						GlobalState.VALID);
 				destination.setData(1, 1, destination
 						.createDataArray(destination.getExtent()),
 						Array2d.GLOBAL_VALID);
@@ -72,8 +69,7 @@ public class PatReduce {
 
 			// run sequential
 			reduceOperation.init(source, false);
-			reduceOperation.doIt(destination.getDataReadWrite(), source
-					.getDataReadOnly());
+			reduceOperation.doIt(destination.getData(), source.getData());
 		}
 
 		return destination;

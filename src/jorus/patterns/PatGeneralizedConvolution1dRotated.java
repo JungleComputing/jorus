@@ -46,23 +46,21 @@ public class PatGeneralizedConvolution1dRotated {
 			final PxSystem px = PxSystem.get();
 
 			try {
-				if (result.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (result.getState() != Array2d.LOCAL_PARTIAL) {
 					if (px.isRoot())
 						logger.debug("GENCONV SCATTER 1...");
 					px.scatter(result);
+				}
+				if (kernel.getState() != Array2d.LOCAL_FULL) {
+					px.broadcast(kernel);
 				}
 				Array2d<T> temp = result.clone();
 				PatSetBorder.dispatch(temp, borderWidth, borderHeight,
 						borderOperation);
 
 				convolutionOperation.init(temp, kernel, theta, true);
-				convolutionOperation
-						.doIt(result.getPartialDataWriteOnly(), temp
-								.getPartialDataReadOnly(), kernel
-								.getDataReadOnly());
-
-//				result.setGlobalState(GlobalState.INVALID);
-				result.setGlobalState(Array2d.GLOBAL_INVALID);
+				convolutionOperation.doIt(result.getData(), temp.getData(),
+						kernel.getData());
 			} catch (Exception e) {
 				//
 			}
@@ -73,8 +71,8 @@ public class PatGeneralizedConvolution1dRotated {
 					borderOperation);
 
 			convolutionOperation.init(temp, kernel, theta, false);
-			convolutionOperation.doIt(result.getDataWriteOnly(), temp
-					.getDataReadOnly(), kernel.getDataReadOnly());
+			convolutionOperation.doIt(result.getData(), temp.getData(), kernel
+					.getData());
 		}
 
 		return result;

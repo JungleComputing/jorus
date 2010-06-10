@@ -11,7 +11,7 @@ public abstract class ReduceToRoot<T> extends Collective<T> {
 	}
 
 	public void reduceToRoot(Array2d<T> data) throws IOException {
-		reduceToRoot(data.getPartialDataReadWrite(), data.getExtent(), data
+		reduceToRoot(data.getData(), data.getExtent(), data
 				.getReduceOperation());
 	}
 

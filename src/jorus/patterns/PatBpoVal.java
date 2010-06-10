@@ -14,107 +14,69 @@ import jorus.operations.bpoval.BpoVal;
 import jorus.parallel.PxSystem;
 
 public class PatBpoVal {
-	/*
-	 * public static CxArray2d dispatch(CxArray2d s1, boolean inplace, CxUpo
-	 * upo) { CxArray2d dst = s1;
-	 * 
-	 * if (!inplace) dst = s1.clone();
-	 * 
-	 * if (PxSystem.initialized()) { // run parallel try {
-	 * 
-	 * if (s1.getLocalState() != CxArray2d.VALID || s1.getDistType() !=
-	 * CxArray2d.PARTIAL) { if (PxSystem.myCPU() == 0) System.out.println("UPO
-	 * SCATTER 1..."); PxSystem.scatterOFT(s1); }
-	 * 
-	 * if (dst.getLocalState() != CxArray2d.VALID || dst.getDistType() !=
-	 * CxArray2d.PARTIAL) { if (PxSystem.myCPU() == 0) System.out.println("UPO
-	 * SCATTER 2..."); PxSystem.scatterOFT(dst); }
-	 * 
-	 * upo.init(s1, true); upo.doIt(dst.getPartialDataReadWrite());
-	 * dst.setGlobalState(CxArray2d.INVALID); // if (PxSystem.myCPU() == 0)
-	 * System.out.println("UPO GATHER..."); // PxSystem.gatherOFT(dst); } catch
-	 * (Exception e) { System.err.println("Failed to perform operation!");
-	 * e.printStackTrace(System.err); } } else { // run sequential upo.init(s1,
-	 * false); upo.doIt(dst.getDataReadWrite()); }
-	 * 
-	 * return dst; }
-	 */
-
 	public static <T> Array2d<T> dispatch(Array2d<T> s1, boolean inplace,
 			BpoVal<T> bpoVal) {
-		Array2d<T> dst = s1;
+		Array2d<T> dst;
 
 		if (PxSystem.initialized()) { // run parallel
 
 			final PxSystem px = PxSystem.get();
-//			final int rank = px.myCPU();
-//			final int size = px.nrCPUs();
 
-			try {
+			if (s1.getState() != Array2d.LOCAL_PARTIAL) {
 
-				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				// The data structure has not been distibuted yet, or is no
+				// longer valid
 
-					// The data structure has not been distibuted yet, or is no
-					// longer valid
+				if (s1.getState() != Array2d.NONE) {
 
-//					if (s1.getGlobalState() != GlobalState.NONE) {
-					if (s1.getGlobalState() != Array2d.GLOBAL_NONE) {
-
-						// if (PxSystem.myCPU() == 0) System.out.println("UPO
-						// SCATTER 1...");
-						px.scatter(dst);
-
-					} else {
-						// Added -- J
-						//
-						// A hack that assumes dst is a target data structure
-						// which we do not need to
-						// scatter. We only initialize the local partitions.
-
-						final int pHeight = px.getPartHeight(s1.getHeight(),
-								px.myCPU());
-
-						final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
-								* (pHeight + s1.getBorderHeight() * 2)
-								* s1.getExtent();
-
-						s1.setPartialData(s1.getWidth(), pHeight, s1
-								.createDataArray(length), Array2d.LOCAL_PARTIAL);
+					// if (PxSystem.myCPU() == 0) System.out.println("UPO
+					// SCATTER 1...");
+					try {
+						px.scatter(s1);
+					} catch (Exception e) {
+						System.err.println("Failed to perform operation!");
+						e.printStackTrace(System.err);
 					}
+				} else {
+					// Added -- J
+					//
+					// A hack that assumes dst is a target data structure
+					// which we do not need to
+					// scatter. We only initialize the local partitions.
+
+					final int pHeight = px.getPartHeight(s1.getHeight(), px
+							.myCPU());
+
+					final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
+							* (pHeight + s1.getBorderHeight() * 2)
+							* s1.getExtent();
+
+					s1.setPartialData(s1.getWidth(), pHeight, s1
+							.createDataArray(length), Array2d.LOCAL_PARTIAL);
 				}
-
-				if (!inplace)
-					dst = s1.clone();
-
-				bpoVal.init(s1, true);
-				bpoVal.doIt(dst.getPartialDataReadWrite());
-//				dst.setGlobalState(GlobalState.INVALID);
-				dst.setGlobalState(Array2d.GLOBAL_INVALID);
-
-				// if (PxSystem.myCPU() == 0) System.out.println("UPO
-				// GATHER...");
-				// PxSystem.gatherOFT(dst);
-
-			} catch (Exception e) {
-				System.err.println("Failed to perform operation!");
-				e.printStackTrace(System.err);
 			}
 
+			dst = s1;
+			if (!inplace)
+				dst = s1.clone();
+
+			bpoVal.init(s1, true);
+			bpoVal.doIt(dst.getData());
+
 		} else { // run sequential
-//			if (s1.getGlobalState() == GlobalState.NONE) {
-			if (s1.getGlobalState() == Array2d.GLOBAL_NONE) {
+			if (s1.getState() == Array2d.NONE) {
 				final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
 						* (s1.getHeight() + s1.getBorderHeight() * 2)
 						* s1.getExtent();
-
-//				s1.setData(s1.getWidth(), s1.getHeight(), s1
-//						.createDataArray(length), GlobalState.VALID);
 				s1.setData(s1.getWidth(), s1.getHeight(), s1
 						.createDataArray(length), Array2d.GLOBAL_VALID);
 			}
+			dst = s1;
+			if (!inplace)
+				dst = s1.clone();
 
 			bpoVal.init(s1, false);
-			bpoVal.doIt(dst.getDataReadWrite());
+			bpoVal.doIt(dst.getData());
 
 		}
 

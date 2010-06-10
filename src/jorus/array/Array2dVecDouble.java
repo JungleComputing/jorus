@@ -11,7 +11,8 @@ package jorus.array;
 
 import jorus.operations.bpo.BpoGetPixEltDouble;
 import jorus.operations.upo.UpoRGB2OOO;
-import jorus.patterns.*;
+import jorus.patterns.PatBpo;
+import jorus.patterns.PatUpo;
 
 public class Array2dVecDouble extends Array2dDoubles {
 	/**
@@ -48,7 +49,7 @@ public class Array2dVecDouble extends Array2dDoubles {
 
 	public Array2dVecDouble convertRGB2OOO(boolean inpl)
 			throws UnsupportedOperationException {
-		if (extent != 3) {
+		if (getExtent() != 3) {
 			throw new UnsupportedOperationException("extent != 3");
 		}
 		return (Array2dVecDouble) PatUpo.dispatch(this, inpl, new UpoRGB2OOO());
@@ -60,11 +61,8 @@ public class Array2dVecDouble extends Array2dDoubles {
 		// Skip this new, since the constructor will do it for us -- J
 		// double[] a = new double[(width+2*bwidth)*(height+2*bheight)];
 
-		Array2dScalarDouble dst = new Array2dScalarDouble(width, height,
-				bwidth, bheight, false);
-
-//		dst.setGlobalState(GlobalState.NONE);
-		dst.setGlobalState(GLOBAL_NONE);
+		Array2dScalarDouble dst = new Array2dScalarDouble(getWidth(), getHeight(),
+				getBorderWidth(), getBorderHeight(), false);
 
 		return (Array2dScalarDouble) PatBpo.dispatch(dst, this, true,
 				new BpoGetPixEltDouble(idx));
@@ -99,5 +97,15 @@ public class Array2dVecDouble extends Array2dDoubles {
 	@Override
 	public Array2dVecDouble clone(int newBorderWidth, int newBorderHeight) {
 		return new Array2dVecDouble(this, newBorderWidth, newBorderHeight);
+	}
+
+	
+	
+	@Override
+	public Array2dVecDouble prepareForSideChannel() {
+		Array2dVecDouble result = new Array2dVecDouble(getWidth(), getHeight(), getBorderWidth(), getBorderHeight(), getExtent(), false);
+		result.setState(GLOBAL_VALID);
+		setState(GLOBAL_VALID);
+		return result;
 	}
 }

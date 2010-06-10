@@ -40,6 +40,6 @@ public abstract class BpoToHist<T>
 	}
 
 
-	public abstract void doIt(T dst, T s1, T s2,
+	public abstract void doIt(double[] dst, T s1, T s2,
 							  int nBins, double minVal, double maxVal);
 }

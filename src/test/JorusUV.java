@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
+import jorus.array.Array2dDoubles;
 import jorus.array.Array2dScalarDouble;
 import jorus.parallel.PxSystem;
 import jorus.pixel.PixelDouble;
@@ -22,7 +23,7 @@ public class JorusUV {
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 15; // 15 for minimal measurement
+	private static final int STEP_THETA = 5; // 15 for minimal measurement
 
 	private static final double MIN_SX = 1; // 1.0 for minimal measurement
 	private static final double MAX_SX = 4; // 5.0 for minimal measurement
@@ -131,7 +132,7 @@ public class JorusUV {
 										thetaRad, false);
 						filtIm2 = (Array2dScalarDouble) source
 								.convGaussAnisotropic2d(sx, 0, 3, sy, 0, 3,
-										thetaRad, true);
+										thetaRad, false);
 						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
 								.negDiv(filtIm2, true);
 						contrastIm = (Array2dScalarDouble) contrastIm
@@ -146,7 +147,7 @@ public class JorusUV {
 			// resultImage.getData();
 			// logger.debug("convUV: theta = " + theta + " finished");
 		}
-		resultImage.bringToRoot();
+		resultImage.createGlobalImage();
 		return resultImage;
 	}
 
@@ -190,8 +191,7 @@ public class JorusUV {
 
 			Array2dScalarDouble viewImage = result;// .clone(0,0);
 			try {
-
-//				viewImage(viewImage.getDataReadOnly(), viewImage.getWidth(),
+//				viewImage(viewImage.getData(), viewImage.getWidth(),
 //						viewImage.getHeight(), name);
 			} catch (Exception e) {
 
@@ -237,6 +237,7 @@ public class JorusUV {
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITER; i++) {
 			singleRun(array, master, "JorusUV " + i);
+			System.err.println("run " + i + ": double[] #" + Array2dDoubles.getAndResetcreateCounter());
 			if (px != null) {
 				px.printStatistics();
 			}
@@ -244,8 +245,6 @@ public class JorusUV {
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		System.err.println("Total execution time: " + totalTime + "ms");
-
-		// System.err.println("double[] #" + Array2dDoubles.createCounter);
 
 	}
 

@@ -12,8 +12,8 @@ public class PatBpoArrayToHistArray {
 	// private static double [] buffer;
 	// private static double [] dst;
 
-	public static double[][] dispatch(Array2d s1, Array2d[] a2, int nBins,
-			double minVal, double maxVal, BpoToHist bpo) {
+	public static <T> double[][] dispatch(Array2d<T> s1, Array2d<T>[] a2, int nBins,
+			double minVal, double maxVal, BpoToHist<T> bpo) {
 
 		double[][] result = new double[a2.length][nBins];
 
@@ -26,7 +26,7 @@ public class PatBpoArrayToHistArray {
 			double[] dst = new double[nBins];
 
 			try {
-				if (s1.getLocalState() != Array2d.LOCAL_PARTIAL) {
+				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
 					if (root)
 						System.out.println("BPO2HIST SCATTER 1...");
 					px.scatter(s1);
@@ -34,9 +34,9 @@ public class PatBpoArrayToHistArray {
 
 				for (int i = 0; i < a2.length; i++) {
 
-					Array2d s2 = a2[i];
+					Array2d<T> s2 = a2[i];
 
-					if (s2.getLocalState() != Array2d.LOCAL_PARTIAL) {
+					if (s2.getState() != Array2d.LOCAL_PARTIAL) {
 						if (root)
 							System.out.println("BPO2HIST SCATTER 2...");
 						px.scatter(s2);
@@ -44,8 +44,8 @@ public class PatBpoArrayToHistArray {
 
 					bpo.init(s1, s2, true);
 
-					bpo.doIt(dst, s1.getPartialDataReadOnly(), s2
-							.getPartialDataReadOnly(), nBins, minVal, maxVal);
+					bpo.doIt(dst, s1.getData(), s2
+							.getData(), nBins, minVal, maxVal);
 
 					System.arraycopy(dst, 0, buffer, i * nBins, nBins);
 
@@ -94,10 +94,10 @@ public class PatBpoArrayToHistArray {
 
 		} else { // run sequential
 			for (int i = 0; i < a2.length; i++) {
-				Array2d s2 = a2[i];
+				Array2d<T> s2 = a2[i];
 
 				bpo.init(s1, s2, false);
-				bpo.doIt(result[i], s1.getDataReadOnly(), s2.getDataReadOnly(),
+				bpo.doIt(result[i], s1.getData(), s2.getData(),
 						nBins, minVal, maxVal);
 			}
 		}
