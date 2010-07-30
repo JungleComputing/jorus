@@ -1,0 +1,1 @@
+java -classpath lib/*:external/*:external/ipl/* -Dibis.server.address=localhost $@

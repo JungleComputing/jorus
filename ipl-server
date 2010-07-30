@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Note: this requires Java 6
+exec java \
+    -classpath "$CLASSPATH:external/ipl/"'*' \
+    -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
+    ibis.ipl.server.Server --events
