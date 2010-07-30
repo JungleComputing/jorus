@@ -93,7 +93,7 @@ public class JorusTest {
 	}
 
 	private void run() {
-		Array2dScalarDouble array = null;
+ 		Array2dScalarDouble array = null;
 		try {
 			PixelDouble pixel = new PixelDouble(1);
 			array = new Array2dScalarDouble(128, 128, 0, 0, true);
@@ -113,15 +113,15 @@ public class JorusTest {
 			 * { array.setSingleValue(pixel, i, j, true); } }
 			 */
 
-			if (master) {
-				try {
-					viewImage(array.getData(), array.getWidth(), array
-							.getHeight(), "1");
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+//			if (master) {
+//				try {
+//					viewImage(array.getData(), array.getWidth(), array
+//							.getHeight(), "1");
+//				} catch (Exception e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -130,11 +130,17 @@ public class JorusTest {
 		// array = array.gaussDerivativeRot(0, 2, 2, 0, 0);
 		// array = (Array2dScalarDouble) array.gauss(4, 11);
 //		 array = (Array2dScalarDouble) array.convGauss2d(4, 3, 11, 4, 3, 11);
-//		array = (Array2dScalarDouble) array.gaussDerivative2d(11, 0, 0, 3);
+//		array = (Array2dScalarDouble) array.gaussDerivative2d(2, 2, 2, 3, false);
 //		array = (Array2dScalarDouble) array.convGauss2d(5, 0, 3, 11, 0, 3);
 //		array = (Array2dScalarDouble) array.convolutionRotated1d(Gaussian1d.create(5, 0, 0.995, 25, 25), -0.25* Math.PI);
-		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(2, 0, 3, 11, 0, 3, 0.25 * Math.PI, true);
+//		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(2, 0, 3, 11, 0, 3, 0.25 * Math.PI, true);
+		array = (Array2dScalarDouble) array.convGauss1x2d(1, 1, 45, 2, 3);
+//		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(1, 2, 3, 1, 0, 3, 0.25 * Math.PI, false);
+//		array = (Array2dScalarDouble) array.convGaussAnisotropic2d(1, 2, 3, 1, 0, 3, 0, false);
+//		array = (Array2dScalarDouble) array.convGauss2d(2, 0, 3, 2, 0, 3, false);
 		array = (Array2dScalarDouble) array.clone(0, 0); // remove borders
+		
+//		array = (Array2dScalarDouble) array.rotate(45, true, false, new PixelDouble(new double[] {-1}));
 
 		if (PxSystem.initialized()) {
 			try {
@@ -150,6 +156,7 @@ public class JorusTest {
 			try {
 				viewImage(array.getData(), array.getWidth(), array
 						.getHeight(), "2");
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -166,17 +173,34 @@ public class JorusTest {
 		outputImage = new ibis.imaging4j.Image(Format.TGDOUBLEGREY, width,
 				height, buf.array());
 
+		// outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
+		// Format.TGDOUBLEARGB), Format.ARGB32);
 		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
-				Format.TGDOUBLEARGB), Format.ARGB32);
-		ImageViewer viewer;
-		if (outputImage.getWidth() < 128) {
-			viewer = new ImageViewer(128, outputImage.getHeight());
-		} else {
-			viewer = new ImageViewer(outputImage.getWidth(), outputImage
-					.getHeight());
-		}
+				Format.GREY), Format.ARGB32);
+		ImageViewer viewer = new ImageViewer(outputImage.getWidth(),
+				outputImage.getHeight());
 		viewer.setImage(outputImage, text);
 	}
+	
+//	private static void viewImage(double[] image, int width, int height,
+//			String text) throws Exception {
+//		ibis.imaging4j.Image outputImage;
+//		ByteBuffer buf = ByteBuffer.allocate(image.length * Double.SIZE / 8);
+//		buf.asDoubleBuffer().put(image);
+//		outputImage = new ibis.imaging4j.Image(Format.TGDOUBLEGREY, width,
+//				height, buf.array());
+//
+//		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
+//				Format.TGDOUBLEARGB), Format.ARGB32);
+//		ImageViewer viewer;
+//		if (outputImage.getWidth() < 128) {
+//			viewer = new ImageViewer(128, outputImage.getHeight());
+//		} else {
+//			viewer = new ImageViewer(outputImage.getWidth(), outputImage
+//					.getHeight());
+//		}
+//		viewer.setImage(outputImage, text);
+//	}
 
 	static class ShutDown extends Thread {
 		final JorusTest server;

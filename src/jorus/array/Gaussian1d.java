@@ -45,7 +45,7 @@ public class Gaussian1d {
 	 * CxHermite(i-fsize, filter[i], sigma, deri); } } return filter; }
 	 */
 
-	public static Array2dScalarDouble create(double sigma, int deri,
+	public static Array2dScalarDouble createDouble(double sigma, int deri,
 			double acc, int fsize, int maxfsize) {
 
 		if (fsize < 1) {
@@ -57,18 +57,18 @@ public class Gaussian1d {
 		Array2dScalarDouble tmp = new Array2dScalarDouble(fsize, 1, 0, 0, true);
 
 		makeFilter(tmp.getData(), sigma, deri, fsize);
-		
+
 		tmp.setPartialData(fsize, 1, tmp.getData(), Array2d.LOCAL_FULL);
-//		double[] filter = tmp.getDataWriteOnly();
-//		double pos = 0;
-//		double neg = 0;
-//		for (int i = 0; i < filter.length; i++) {
-//			if (filter[i] > 0) {
-//				pos += filter[i];
-//			} else {
-//				neg += filter[i];
-//			}
-//		}
+		// double[] filter = tmp.getDataWriteOnly();
+		// double pos = 0;
+		// double neg = 0;
+		// for (int i = 0; i < filter.length; i++) {
+		// if (filter[i] > 0) {
+		// pos += filter[i];
+		// } else {
+		// neg += filter[i];
+		// }
+		// }
 
 		return tmp;
 	}
@@ -103,24 +103,24 @@ public class Gaussian1d {
 			}
 
 			// FIXME Timo: normalization added. Should we keep this?
-			double pos = 0;
-			double neg = 0;
-			for (int i = 0; i < filter.length; i++) {
-				if (filter[i] > 0) {
-					pos += filter[i];
-				} else {
-					neg += filter[i];
-				}
-			}
-			double normalizationFactor;
-			if (deri % 2 == 0) { // even
-				normalizationFactor = pos - neg;
-			} else {// uneven
-				normalizationFactor = pos;
-			}
-			for (int i = 0; i < filter.length; i++) {
-				filter[i] /= normalizationFactor;
-			}
+			// double pos = 0;
+			// double neg = 0;
+			// for (int i = 0; i < filter.length; i++) {
+			// if (filter[i] > 0) {
+			// pos += filter[i];
+			// } else {
+			// neg += filter[i];
+			// }
+			// }
+			// double normalizationFactor;
+			// if (deri % 2 == 0) { // even
+			// normalizationFactor = pos - neg;
+			// } else {// uneven
+			// normalizationFactor = pos;
+			// }
+			// for (int i = 0; i < filter.length; i++) {
+			// filter[i] /= normalizationFactor;
+			// }
 		}
 	}
 
@@ -171,5 +171,122 @@ public class Gaussian1d {
 		return Hn;
 		// }
 
+	}
+
+	/*
+	 * Replaced by an in-place filter generation below -- J
+	 * 
+	 * public static CxArray2dScalarDouble create(double sigma, int deri, double
+	 * acc, int maxfsize, int fsize) { if (fsize < 1) { fsize =
+	 * filterWidth(sigma, deri, acc, maxfsize); } double[] fData =
+	 * makeFilter(sigma, deri, acc, fsize, maxfsize); return new
+	 * CxArray2dScalarDouble(fsize, 1, 0, 0, fData); }
+	 * 
+	 * 
+	 * private static double[] makeFilter(double sigma, int deri, double acc,
+	 * int fsize, int maxfsize) { double[] filter = new double[fsize]; fsize =
+	 * fsize/2; int centerIdx = fsize;
+	 * 
+	 * 
+	 * // Calculate filter
+	 * 
+	 * double sum = CxGauss(0.0, sigma); filter[centerIdx] = sum;
+	 * 
+	 * for (int i=1; i<=fsize; i++) { double val = CxGauss(i, sigma); sum +=
+	 * val+val; filter[centerIdx+i] = val; filter[centerIdx-i] = val; }
+	 * 
+	 * 
+	 * // Normalize to sum=1.0
+	 * 
+	 * for (int i=0; i<filter.length; i++) { filter[i] /= sum; }
+	 * 
+	 * 
+	 * // Replace by Hermite polinomial of order deri
+	 * 
+	 * if (deri > 0) { for (int i=0; i<filter.length; i++) { filter[i] =
+	 * CxHermite(i-fsize, filter[i], sigma, deri); } } return filter; }
+	 */
+
+	public static Array2dScalarFloat createFloat(double sigma, int deri,
+			double acc, int fsize, int maxfsize) {
+
+		if (fsize < 1) {
+			fsize = filterWidth(sigma, deri, acc, maxfsize);
+		} else if (fsize % 2 == 0) {
+			fsize -= 1; // length of a filter must be odd
+		}
+
+		Array2dScalarFloat tmp = new Array2dScalarFloat(fsize, 1, 0, 0, true);
+
+		makeFilter(tmp.getData(), sigma, deri, fsize);
+
+		tmp.setPartialData(fsize, 1, tmp.getData(), Array2d.LOCAL_FULL);
+		// double[] filter = tmp.getDataWriteOnly();
+		// double pos = 0;
+		// double neg = 0;
+		// for (int i = 0; i < filter.length; i++) {
+		// if (filter[i] > 0) {
+		// pos += filter[i];
+		// } else {
+		// neg += filter[i];
+		// }
+		// }
+
+		return tmp;
+	}
+
+	private static void makeFilter(float[] filter, double sigma, int deri,
+			int fsize) {
+//		double[] filter = new double[filterFloat.length];
+
+		fsize = fsize / 2;
+		int centerIdx = fsize;
+
+		// Calculate filter
+
+		double sum = CxGauss(0.0, sigma);
+		filter[centerIdx] = (float) sum;
+
+		for (int i = 1; i <= fsize; i++) {
+			double val = CxGauss(i, sigma);
+			sum += val + val;
+			filter[centerIdx + i] = (float) val;
+			filter[centerIdx - i] = (float) val;
+		}
+
+		// Normalize to sum=1.0
+		for (int i = 0; i < filter.length; i++) {
+			filter[i] /= sum;
+		}
+
+		// Replace by Hermite polinomial of order deri
+		if (deri > 0) {
+			for (int i = 0; i < filter.length; i++) {
+				filter[i] = (float) CxHermite(i - fsize, filter[i], sigma, deri);
+			}
+
+			// FIXME Timo: normalization added. Should we keep this?
+			// double pos = 0;
+			// double neg = 0;
+			// for (int i = 0; i < filter.length; i++) {
+			// if (filter[i] > 0) {
+			// pos += filter[i];
+			// } else {
+			// neg += filter[i];
+			// }
+			// }
+			// double normalizationFactor;
+			// if (deri % 2 == 0) { // even
+			// normalizationFactor = pos - neg;
+			// } else {// uneven
+			// normalizationFactor = pos;
+			// }
+			// for (int i = 0; i < filter.length; i++) {
+			// filter[i] /= normalizationFactor;
+			// }
+		}
+//		for(int i =0; i < filter.length; i++) {
+//			filterFloat[i] = (float) filter[i];
+//		}
 	}
 }

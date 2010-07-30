@@ -18,7 +18,7 @@ import jorus.pixel.Pixel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Array2d<T> implements Serializable {
+public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializable {
 	private static final long serialVersionUID = -378351580205311141L;
 
 	private static final Logger logger = LoggerFactory.getLogger(Array2d.class);
@@ -94,7 +94,8 @@ public abstract class Array2d<T> implements Serializable {
 			// Create new array and copy values, ignoring border values
 			data = createDataArray((width + 2 * borderWidth)
 					* (height + 2 * borderHeight) * extent);
-			state = GLOBAL_CREATED;
+			// state = GLOBAL_CREATED; //FIXME leads to glitches
+			state = GLOBAL_VALID;
 		}
 	}
 
@@ -120,7 +121,7 @@ public abstract class Array2d<T> implements Serializable {
 
 	// Copy constructor which copies an existing array, dimension of the
 	// borders, state, etc. is unchanged. Partial data is also copied -- J.
-	protected Array2d(Array2d<T> original) {
+	protected Array2d(Array2d<T, U> original) {
 		setDimensions(original.width, original.height, original.borderWidth,
 				original.borderHeight, original.extent);
 
@@ -138,7 +139,7 @@ public abstract class Array2d<T> implements Serializable {
 	// dimension of the borders, partial data is also copied (with adjusted
 	// border dimensions). Other state is unchanged -- J
 	// Timo: Note that the border data that is _NOT_ copied
-	protected Array2d(Array2d<T> original, int newBorderWidth,
+	protected Array2d(Array2d<T, U> original, int newBorderWidth,
 			int newBorderHeight) {
 		setDimensions(original.width, original.height, newBorderWidth,
 				newBorderHeight, original.extent);
@@ -373,9 +374,12 @@ public abstract class Array2d<T> implements Serializable {
 		this.partialHeight = height;
 		this.data = data;
 		this.state = state;
-		int requiredLength = (partialWidth + 2 * borderWidth) * (partialHeight + 2 * borderHeight) * extent;
+		int requiredLength = (partialWidth + 2 * borderWidth)
+				* (partialHeight + 2 * borderHeight) * extent;
 		if (requiredLength > getDataArraySize()) {
-			throw new Error("Array too small. current #elements: " + getDataArraySize() + ", required #elements: " + requiredLength);
+			throw new Error("Array too small. current #elements: "
+					+ getDataArraySize() + ", required #elements: "
+					+ requiredLength);
 		}
 	}
 
@@ -383,7 +387,7 @@ public abstract class Array2d<T> implements Serializable {
 		return (extent == p.getExtent());
 	}
 
-	public boolean equalSignature(Array2d<T> a) {
+	public boolean equalSignature(Array2d<T, ?> a) {
 		// NOTE: The array borders do not need to be equal in size!!!
 		return (width == a.getWidth() && height == a.getHeight() && extent == a
 				.getExtent());
@@ -392,18 +396,22 @@ public abstract class Array2d<T> implements Serializable {
 	/**
 	 * Change the state to @param newState using communication
 	 * 
-	 * @param newState the desired state for this array
+	 * @param newState
+	 *            the desired state for this array
 	 */
 	public void changeStateTo(int newState) throws Exception {
-		if(!PxSystem.initialized()) {
+		if (!PxSystem.initialized()) {
 			// no state changes are needed
 			return;
 		}
+		if (newState == state) {
+			// we don't have to do anything
+			return;
+		}
+
 		switch (newState) {
 		case GLOBAL_VALID:
 			switch (state) {
-			case GLOBAL_VALID:
-				return;
 			case GLOBAL_CREATED:
 				state = GLOBAL_VALID;
 				return;
@@ -417,7 +425,7 @@ public abstract class Array2d<T> implements Serializable {
 			case LOCAL_NOT_REDUCED:
 				PxSystem.get().reduceToRoot(this);
 				return;
-			}			
+			}
 			break;
 		case LOCAL_FULL:
 			switch (state) {
@@ -425,13 +433,11 @@ public abstract class Array2d<T> implements Serializable {
 				PxSystem.get().broadcast(this);
 				return;
 			case GLOBAL_CREATED:
-				//FIXME just create a new data structure??
+				// FIXME just create a new data structure??
 				PxSystem.get().broadcast(this);
 				return;
-			case LOCAL_FULL:
-				return;
-			case LOCAL_PARTIAL: //FIXME implement a gatherAll in PxSystem
-//				PxSystem.get().gatherAll(this);
+			case LOCAL_PARTIAL: // FIXME implement a gatherAll in PxSystem
+				// PxSystem.get().gatherAll(this);
 				PxSystem.get().gather(this);
 				PxSystem.get().broadcast(this);
 				return;
@@ -446,30 +452,28 @@ public abstract class Array2d<T> implements Serializable {
 				PxSystem.get().scatter(this);
 				return;
 			case GLOBAL_CREATED:
-				//FIXME just create a new data structure??
+				// FIXME just create a new data structure??
 				PxSystem.get().scatter(this);
 				return;
 			case LOCAL_FULL:
 				PxSystem.get().scatter(this);
 				return;
-			case LOCAL_PARTIAL:
-				// NOOP
-				return;
 			case LOCAL_NOT_REDUCED:
-				PxSystem.get().reduceToAll(this); 
+				PxSystem.get().reduceToAll(this);
 				// or do the normal reduce??
 				PxSystem.get().scatter(this);
 				return;
 			}
 			break;
 		}
-		throw new Exception("Illegal State Transistion: " + stateString() + " --> "+ stateString(newState));
+		throw new Exception("Illegal State Transistion: " + stateString()
+				+ " --> " + stateString(newState));
 	}
 
 	public int getState() {
 		return state;
 	}
-	
+
 	public void setState(int state) {
 		this.state = state;
 	}
@@ -497,15 +501,22 @@ public abstract class Array2d<T> implements Serializable {
 
 	/** * Clones ***************************************** */
 
-	public abstract Array2d<T> clone();
+	public abstract U clone();
 
-	public abstract Array2d<T> clone(int newBorderWidth, int newBorderHeight);
+	public abstract U clone(int newBorderWidth, int newBorderHeight);
 
-	public abstract Array2d<T> prepareForSideChannel(); //clone, except the data, state --> GLOBAL_VALID
+	public abstract U createCompatibleArray(int width, int height,
+			int borderWidth, int borderHeight);
+
+	public abstract Array2d<T, U> prepareForSideChannel(); // clone, except the
+
+	// data, state -->
+	// GLOBAL_VALID
 
 	/** * Array creation and type information ************************** */
 
 	public abstract int getDataArraySize();
+
 	public abstract T createDataArray(int size);
 
 	protected abstract T copyArray();
@@ -514,10 +525,10 @@ public abstract class Array2d<T> implements Serializable {
 
 	/** * Single Pixel (Value) Operations ***************************** */
 
-	public abstract Array2d<T> setSingleValue(Pixel<T> p, int xidx, int yidx,
+	public abstract U setSingleValue(Pixel<T> p, int xidx, int yidx,
 			boolean inpl);
 
-	public abstract Array2d<T> addSingleValue(Pixel<T> p, int xidx, int yidx,
+	public abstract U addSingleValue(Pixel<T> p, int xidx, int yidx,
 			boolean inpl);
 
 	/**
@@ -525,84 +536,99 @@ public abstract class Array2d<T> implements Serializable {
 	 * **************************************
 	 */
 
-	public abstract Array2d<T> setVal(Pixel<T> p, boolean inpl);
+	public abstract U setVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> addVal(Pixel<T> p, boolean inpl);
+	public abstract U addVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> subVal(Pixel<T> p, boolean inpl);
+	public abstract U subVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> mulVal(Pixel<T> p, boolean inpl);
+	public abstract U mulVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> divVal(Pixel<T> p, boolean inpl);
+	public abstract U divVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> minVal(Pixel<T> p, boolean inpl);
+	public abstract U minVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> maxVal(Pixel<T> p, boolean inpl);
+	public abstract U maxVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> negDivVal(Pixel<T> p, boolean inpl);
+	public abstract U negDivVal(Pixel<T> p, boolean inpl);
 
-	public abstract Array2d<T> absDivVal(Pixel<T> p, boolean inpl);
+	public abstract U absDivVal(Pixel<T> p, boolean inpl);
 
 	/** * Binary Pixel Operations ************************************* */
 
-	public abstract Array2d<T> add(Array2d<T> a, boolean inpl);
+	public abstract U add(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> sub(Array2d<T> a, boolean inpl);
+	public abstract U sub(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> mul(Array2d<T> a, boolean inpl);
+	public abstract U mul(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> div(Array2d<T> a, boolean inpl);
+	public abstract U div(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> min(Array2d<T> a, boolean inpl);
+	public abstract U min(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> max(Array2d<T> a, boolean inpl);
+	public abstract U max(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> negDiv(Array2d<T> a, boolean inpl);
+	public abstract U negDiv(Array2d<T, ?> a, boolean inpl);
 
-	public abstract Array2d<T> absDiv(Array2d<T> a, boolean inpl);
+	public abstract U posDiv(Array2d<T, ?> a, boolean inpl);
+
+	public abstract U absDiv(Array2d<T, ?> a, boolean inpl);
 
 	/** * Reduction Operations *************************************** */
 
-	public abstract Array2d<T> pixMin();
+	public abstract U pixMin();
 
-	public abstract Array2d<T> pixMax();
+	public abstract U pixMax();
 
-	public abstract Array2d<T> pixSum();
+	public abstract U pixSum();
 
-	public abstract Array2d<T> pixProduct();
+	public abstract U pixProduct();
 
-	public abstract Array2d<T> pixSup(); // supremum
+	public abstract U pixSup(); // supremum
 
-	public abstract Array2d<T> pixInf(); // infimum
+	public abstract U pixInf(); // infimum
 
 	/** * Convolution Operations ************************************* */
 
-	public abstract Array2d<T> convKernelSeparated2d(Array2d<T> kernelX,
-			Array2d<T> kernelY, boolean inplace);
+	public abstract U convKernelSeparated2d(Array2d<T, ?> kernelX,
+			Array2d<T, ?> kernelY, boolean inplace);
 
-	public final Array2d<T> convKernelSeparated(Array2d<T> kernel,
+	public final U convKernelSeparated(Array2d<T, ?> kernel,
 			boolean inplace) {
 		return convKernelSeparated2d(kernel, kernel, inplace);
 	}
 
-	public abstract Array2d<T> convolution(Array2d<T> kernel);
+	public abstract U convolution(Array2d<T, ?> kernel);
 
-	public abstract Array2d<T> convolution1d(Array2d<T> kernel, int dimension);
+	public abstract U convolution1d(Array2d<T, ?> kernel, int dimension);
 
-	public abstract Array2d<T> convolutionRotated1d(Array2d<T> kernel,
+	public abstract U convolutionRotated1d(Array2d<T, ?> kernel,
 			double phirad);
 
-	public abstract Array2d<T> convGauss2d(double sigmaX, int orderDerivX,
+	public abstract U convGauss2d(double sigmaX, int orderDerivX,
 			double truncationX, double sigmaY, int orderDerivY,
 			double truncationY, boolean inplace);
 
-	public final Array2d<T> gauss(double sigma, double truncation,
+	/**
+	 * Deprecated: for use in Conv2D benchmark only.
+	 * 
+	 * @param sigmaR
+	 * @param sigmaT
+	 * @param phiDegrees
+	 * @param derivativeT
+	 * @param n
+	 * @return
+	 */
+	public abstract U convGauss1x2d(double sigmaR, double sigmaT,
+			double phiDegrees, int derivativeT, double n);
+
+	public final U gauss(double sigma, double truncation,
 			boolean inplace) {
 		return gaussDerivative2d(sigma, 0, 0, truncation, inplace);
 
 	}
 
-	public final Array2d<T> gaussDerivative2d(double sigma, int orderDerivX,
+	public final U gaussDerivative2d(double sigma, int orderDerivX,
 			int orderDerivY, double truncation, boolean inplace) {
 		return convGauss2d(sigma, orderDerivX, truncation, sigma, orderDerivY,
 				truncation, inplace);
@@ -610,9 +636,157 @@ public abstract class Array2d<T> implements Serializable {
 
 	/** Anisotropic Convolution **/
 
-	public abstract Array2d<T> convGaussAnisotropic2d(double sigmaU,
+	public abstract U convGaussAnisotropic2d(double sigmaU,
 			int orderDerivU, double truncationU, double sigmaV,
 			int orderDerivV, double truncationV, double phiRad, boolean inplace);
+
+	/** Geometric Operations **/
+
+	protected double[][] calculateDimensionsandTranslationVector(
+			Matrix forwardsTransformationMatrix) {
+
+		double[] ll, lr, ur, ul;
+		try {
+			double[] vector = new double[] { 0, 0, 1 };
+			ul = Matrix.multMV(forwardsTransformationMatrix, vector);
+			vector[0] = width; // { width, 0, 1 }
+			ur = Matrix.multMV(forwardsTransformationMatrix, vector);
+			vector[1] = height; // { width, height, 1 }
+			lr = Matrix.multMV(forwardsTransformationMatrix, vector);
+			vector[0] = 0; // { 0, height, 1 }
+			ll = Matrix.multMV(forwardsTransformationMatrix, vector);
+		} catch (Exception e) {
+			// TODO Will never happen
+			throw new Error(e);
+		}
+
+		// homogeneous coordinates:
+		ul[0] /= ul[2];
+		ul[1] /= ul[2];
+		ur[0] /= ur[2];
+		ur[1] /= ur[2];
+		lr[0] /= lr[2];
+		lr[1] /= lr[2];
+		ll[0] /= ll[2];
+		ll[1] /= ll[2];
+
+		double right = Math.max(Math.max(ur[0], lr[0]), Math.max(ul[0], ll[0]));
+		double left = Math.min(Math.min(ur[0], lr[0]), Math.min(ul[0], ll[0]));
+
+		double bottom = Math
+				.max(Math.max(ul[1], ur[1]), Math.max(ll[1], lr[1]));
+		double top = Math.min(Math.min(ul[1], ur[1]), Math.min(ll[1], lr[1]));
+
+		int newHeight = (int) (bottom - top + 0.5);
+		int newWidth = (int) (right - left + 0.5);
+
+		double[] newDimensions = new double[] { newWidth, newHeight };
+		double[] tData = new double[3];
+		tData[0] = left;
+		tData[1] = top;
+
+		return new double[][] { tData, newDimensions };
+	}
+
+	protected abstract U geometricOp2d(Matrix transformationMatrix,
+			boolean forwardMatrix, boolean linearInterpolation,
+			boolean adjustSize, Pixel<T> background);
+
+	/**
+	 * Translates the image with tx and ty pixels in the x- and y- direction
+	 * respectively. Background pixels will be set to '0'
+	 * 
+	 * @param tx
+	 *            The translation in the x direction
+	 * @param ty
+	 *            The translation in the y direction
+	 * @param adjustSize
+	 *            when false, corners may be chopped off the image
+	 * @return the translated image
+	 */
+	public final U translate(int tx, int ty) {
+		Matrix m = Matrix.translate2d(tx, ty);
+		return geometricOp2d(m, true, false, false, null);
+	}
+
+	/**
+	 * Rotates the image around the z-axis. The center of rotation is the center
+	 * of the image
+	 * 
+	 * @param alpha
+	 *            The rotation angle in degrees (positive alpha leads to
+	 *            rotation in counterclockwise direction)
+	 * @param linearInterpolation
+	 *            true: use linear interpolation false: use nearest neighbour
+	 *            fit
+	 * @param adjustSize
+	 *            when false, corners may be chopped off the image
+	 * @param background
+	 *            the value of the background pixels
+	 * @return the rotated image
+	 */
+	public final U rotate(double alpha, boolean linearInterpolation,
+			boolean adjustSize, Pixel<T> background) {
+		/*
+		 * The image coordinate system has the origin at the top left instead of
+		 * the bottom left, so rotation is in the opposite direction
+		 */
+		try {
+			Matrix mt1 = Matrix.translate2d((double) (getWidth()) / 2.,
+					(double) (getHeight()) / 2.);
+			Matrix mr1 = Matrix.rotate2dDeg(-alpha);
+			Matrix mt2 = Matrix.translate2d(-(double) (getWidth()) / 2.,
+					-(double) (getHeight()) / 2.);
+			Matrix m = Matrix.multMM(Matrix.multMM(mt1, mr1), mt2);
+
+			return geometricOp2d(m, true, linearInterpolation, adjustSize,
+					background);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			throw new Error(e);
+		}
+	}
+
+	/**
+	 * Scales the image with scaling factors sx and sy in the x- and y-
+	 * direction respectively. Background pixels will be set to '0'
+	 * 
+	 * @param sx
+	 *            The scale factor in the x direction
+	 * @param sy
+	 *            The scale factor in the y direction
+	 * @param linearInterpolation
+	 *            true: use linear interpolation false: use nearest neighbour
+	 *            fit
+	 * @param adjustSize
+	 *            when false, corners may be chopped off the image
+	 * @return the scaled image
+	 */
+	public final U scale(double sx, double sy,
+			boolean linearInterpolation, boolean adjustSize, Pixel<T> background) {
+		Matrix m = Matrix.scale2d(sx, sy);
+		return geometricOp2d(m, true, linearInterpolation, adjustSize, null);
+	}
+
+	/** Geometric ROI operations **/
+
+	public abstract U geometricOpROI(int newImWidth,
+			int newImHeight, Pixel<T> background, int beginX, int beginY);
+
+	public final U extend(int newImWidth, int newImHeight,
+			Pixel<T> background, int beginX, int beginY) {
+		return geometricOpROI(newImWidth, newImHeight, background, -beginX,
+				-beginY);
+	}
+
+	public final U restrict(int beginX, int beginY, int endX, int endY) {
+		int newImWidth = endX - beginX + 1;
+		int newImHeight = endY - beginY + 1;
+		// Pixel<T> background;
+		// return geometricOpROI(newImWidth, newImHeight, background, -beginX,
+		// -beginY);
+		return geometricOpROI(newImWidth, newImHeight, null, beginX, beginY);
+	}
 
 	/** * Pixel Manipulation (NOT PARALLEL) *************************** */
 }

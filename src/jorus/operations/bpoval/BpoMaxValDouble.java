@@ -11,49 +11,48 @@ package jorus.operations.bpoval;
 
 import jorus.array.Array2d;
 
+
 public class BpoMaxValDouble extends BpoVal<double[]> {
 	protected double[] value;
 	protected int extent;
 	protected int pixelWidth;
+	// According to Horus docs: use the L1 norm;
+	protected double valueL1;
 
 	public BpoMaxValDouble(double[] p) {
 		value = p;
 	}
 
 	@Override
-	public void init(Array2d<double[]> s1, boolean parallel) {
+	public void init(Array2d<double[],?> s1, boolean parallel) {
 		pixelWidth = parallel ? s1.getPartialWidth() : s1.getWidth();
 		extent = s1.getExtent();
+		// According to Horus docs: use the L1 norm;
+		valueL1 = normL1(value, 0, value.length);
 		super.init(s1, parallel);
 	}
 
 	@Override
-	public void doIt(double[] dst) {
+	public void doRow(double[] dst, int row) {
 		if (extent == 1) {
-			doItSimple(dst); //TODO Test whether this is really faster
+			doItSimple(dst, row); // TODO Test whether this is really faster
 			return;
 		}
-		// According to Horus docs: use the L1 norm;
-		final double valueL1 = normL1(value, 0, value.length);
 
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < pixelWidth; i += extent) {
-				if (valueL1 > normL1(dst, offset + j * (width + stride) + i,
-						extent)) {
-					for (int k = 0; k < extent; k++) {
-						dst[offset + j * (width + stride) + i + k] = value[k];
-					}
+		for (int i = 0; i < pixelWidth; i += extent) {
+			if (valueL1 > normL1(dst, offset + row * (width + stride) + i,
+					extent)) {
+				for (int k = 0; k < extent; k++) {
+					dst[offset + row * (width + stride) + i + k] = value[k];
 				}
 			}
 		}
 	}
 
-	public void doItSimple(double[] dst) {
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				if(value[0] > dst[offset + j * (width + stride) + i]) {
-					dst[offset + j * (width + stride) + i] = value[0];
-				}
+	public void doItSimple(double[] dst, int row) {
+		for (int i = 0; i < width; i++) {
+			if (value[0] > dst[offset + row * (width + stride) + i]) {
+				dst[offset + row * (width + stride) + i] = value[0];
 			}
 		}
 	}

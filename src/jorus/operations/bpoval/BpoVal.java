@@ -18,7 +18,7 @@ public abstract class BpoVal<T> {
 	protected int stride = 0;
 	protected int rowWidth = 0;
 
-	public void init(Array2d<T> s1, boolean parallel) {
+	public void init(Array2d<T,?> s1, boolean parallel) {
 		int w1 = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int extent = s1.getExtent();
 		int borderWidth = s1.getBorderWidth();
@@ -31,5 +31,12 @@ public abstract class BpoVal<T> {
 		
 	}
 
-	public abstract void doIt(T dst);
+	public abstract void doRow(T dst, int row);
+	
+	public final void doIt(T dst) {
+//		final int index = offset + j * rowWidth;
+		for (int j = 0; j < height; j++) {
+			doRow(dst, offset + j * rowWidth);
+		}
+	}
 }

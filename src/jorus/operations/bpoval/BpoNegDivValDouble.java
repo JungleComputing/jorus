@@ -9,6 +9,7 @@
 
 package jorus.operations.bpoval;
 
+
 public class BpoNegDivValDouble extends BpoVal<double[]> {
 	protected double[] value;
 
@@ -17,14 +18,12 @@ public class BpoNegDivValDouble extends BpoVal<double[]> {
 	}
 
 	@Override
-	public void doIt(double[] dst) {
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				dst[offset + j * (width + stride) + i] = dst[offset + j
-						* (width + stride) + i] < 0 ? -dst[offset + j
-						* (width + stride) + i]
-						/ value[(j * i) % value.length] : 0;
-			}
+	public void doRow(double[] dst, int row) {
+		for (int i = 0; i < width; i++) {
+			dst[offset + row * (width + stride) + i] = dst[offset + row
+					* (width + stride) + i] < 0 ? -dst[offset + row
+					* (width + stride) + i]
+					/ value[(row * i) % value.length] : 0;
 		}
 	}
 }

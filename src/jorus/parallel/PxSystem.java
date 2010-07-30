@@ -25,13 +25,14 @@ import java.util.Map;
 import java.util.Properties;
 
 import jorus.array.Array2d;
-import jorus.array.Array2dDoubles;
+import jorus.array.Array2dDouble;
+import jorus.array.Array2dFloat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PxSystem {
-	private static final Logger logger = LoggerFactory
+	protected static final Logger logger = LoggerFactory
 			.getLogger(PxSystem.class);
 
 	/** * Ibis Capabilities & PortTypes ******************************* */
@@ -79,46 +80,46 @@ public class PxSystem {
 
 	private static PxSystem system;
 
-	private static long timeBarrier = 0;
-	private static long countBarrier = 0;
-
-	private static long timeReduceToRoot = 0;
-	private static long countReduceToRoot = 0;
-	private static long dataInReduceToRoot = 0;
-	private static long dataOutReduceToRoot = 0;
-
-	private static long timeReduceToAll = 0;
-	private static long countReduceToAll = 0;
-	private static long dataInReduceToAll = 0;
-	private static long dataOutReduceToAll = 0;
-
-	private static long timeScatter = 0;
-	private static long countScatter = 0;
-	private static long dataInScatter = 0;
-	private static long dataOutScatter = 0;
-
-	private static long timeGather = 0;
-	private static long countGather = 0;
-	private static long dataInGather = 0;
-	private static long dataOutGather = 0;
-
-	private static long timeBroadcast = 0;
-	private static long countBroadcast = 0;
-	private static long dataInBroadcast = 0;
-	private static long dataOutBroadcast = 0;
-
-	private static long timeBroadcastValue = 0;
-	private static long countBroadcastValue = 0;
-
-	private static long timeBorderExchange = 0;
-	private static long countBorderExchange = 0;
-	private static long dataInBorderExchange = 0;
-	private static long dataOutBorderExchange = 0;
+	 private static long timeBarrier = 0;
+	 private static long countBarrier = 0;
 	
-	static long timeSideChannel = 0;
-	static long countSideChannel = 0;
-	static long dataInSideChannel = 0;
-	static long dataOutSideChannel = 0;
+	 private static long timeReduceToRoot = 0;
+	 private static long countReduceToRoot = 0;
+	 private static long dataInReduceToRoot = 0;
+	 private static long dataOutReduceToRoot = 0;
+	
+	 private static long timeReduceToAll = 0;
+	 private static long countReduceToAll = 0;
+	 private static long dataInReduceToAll = 0;
+	 private static long dataOutReduceToAll = 0;
+	
+	 private static long timeScatter = 0;
+	 private static long countScatter = 0;
+	 private static long dataInScatter = 0;
+	 private static long dataOutScatter = 0;
+	
+	 private static long timeGather = 0;
+	 private static long countGather = 0;
+	 private static long dataInGather = 0;
+	 private static long dataOutGather = 0;
+	
+	 private static long timeBroadcast = 0;
+	 private static long countBroadcast = 0;
+	 private static long dataInBroadcast = 0;
+	 private static long dataOutBroadcast = 0;
+	
+	 private static long timeBroadcastValue = 0;
+	 private static long countBroadcastValue = 0;
+	
+	 private static long timeBorderExchange = 0;
+	 private static long countBorderExchange = 0;
+	 private static long dataInBorderExchange = 0;
+	 private static long dataOutBorderExchange = 0;
+	
+	 static long timeSideChannel = 0;
+	 static long countSideChannel = 0;
+	 static long dataInSideChannel = 0;
+	 static long dataOutSideChannel = 0;
 
 	public static PxSystem init(String name, String size) throws Exception {
 
@@ -352,7 +353,8 @@ public class PxSystem {
 	public void printStatistics() {
 		long totalTime = timeBarrier /* + timeReduceValueToRoot0FT */
 				+ timeReduceToRoot + timeReduceToAll + timeScatter + timeGather
-				+ timeBroadcast + timeBroadcastValue + timeBorderExchange + timeSideChannel;
+				+ timeBroadcast + timeBroadcastValue + timeBorderExchange
+				+ timeSideChannel;
 
 		long totalCount = countBarrier /* + countReduceValueToRoot0FT */
 				+ countReduceToRoot + countReduceToAll + countScatter
@@ -360,64 +362,72 @@ public class PxSystem {
 				+ countBorderExchange + countSideChannel;
 
 		if (totalCount > 0)
-			System.out.printf("Total communication time %15.2f usec, count %5d\n",
+			System.out.printf(
+					"Total communication time %15.2f usec, count %5d\n",
 					(totalTime / 1000.0), totalCount);
 		if (countBarrier > 0)
-			System.out.printf("            barrier time %15.2f usec, count %5d\n",
+			System.out.printf(
+					"            barrier time %15.2f usec, count %5d\n",
 					(timeBarrier / 1000.0), countBarrier);
 		if (countBroadcastValue > 0)
-			System.out.printf("     broadcastValue time %15.2f usec, count %5d\n",
+			System.out.printf(
+					"     broadcastValue time %15.2f usec, count %5d\n",
 					(timeBroadcastValue / 1000.0), countBroadcastValue);
 		// System.out.printf("          reduceV2R time %.2f usec, count %d\n",
 		// (timeReduceValueToRoot0FT / 1000.0), countReduceValueToRoot0FT);
 		if (countReduceToRoot > 0)
 			System.out
-					.printf(
-							"       reduceToRoot time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
-							(timeReduceToRoot / 1000.0), countReduceToRoot,
-							dataInReduceToRoot, dataOutReduceToRoot,
+					.printf("       reduceToRoot time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeReduceToRoot / 1000.0),
+							countReduceToRoot,
+							dataInReduceToRoot,
+							dataOutReduceToRoot,
 							getThroughput(dataInReduceToRoot
 									+ dataOutReduceToRoot, timeReduceToRoot));
 
 		if (countReduceToAll > 0)
 			System.out
-					.printf(
-							"       reduceToAll time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
-							(timeReduceToAll / 1000.0), countReduceToAll,
-							dataInReduceToAll, dataOutReduceToAll,
+					.printf("       reduceToAll time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeReduceToAll / 1000.0),
+							countReduceToAll,
+							dataInReduceToAll,
+							dataOutReduceToAll,
 							getThroughput(dataInReduceToAll
 									+ dataOutReduceToAll, timeReduceToAll));
 
 		if (countScatter > 0)
 			System.out
-					.printf(
-							"            scatter time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
-							(timeScatter / 1000.0), countScatter,
-							dataInScatter, dataOutScatter,
+					.printf("            scatter time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeScatter / 1000.0),
+							countScatter,
+							dataInScatter,
+							dataOutScatter,
 							getThroughput(dataInScatter + dataOutScatter,
 									timeScatter));
 
 		if (countGather > 0)
 			System.out
-					.printf(
-							"             gather time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
-							(timeGather / 1000.0), countGather, dataInGather,
-							dataOutGather, getThroughput(dataInGather
-									+ dataOutGather, timeGather));
+					.printf("             gather time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeGather / 1000.0),
+							countGather,
+							dataInGather,
+							dataOutGather,
+							getThroughput(dataInGather + dataOutGather,
+									timeGather));
 
 		if (countBroadcast > 0)
 			System.out
-					.printf(
-							"       broadcastSBT time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
-							(timeBroadcast / 1000.0), countBroadcast,
-							dataInBroadcast, dataOutBroadcast, getThroughput(
-									dataInBroadcast + dataOutBroadcast,
+					.printf("       broadcastSBT time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeBroadcast / 1000.0),
+							countBroadcast,
+							dataInBroadcast,
+							dataOutBroadcast,
+							getThroughput(dataInBroadcast + dataOutBroadcast,
 									timeBroadcast));
 
 		if (countBorderExchange > 0)
 			System.out
-					.printf(
-							"     borderExchange time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+					.printf("     borderExchange time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
 							(timeBorderExchange / 1000.0),
 							countBorderExchange,
 							dataInBorderExchange,
@@ -426,8 +436,7 @@ public class PxSystem {
 									+ dataOutBorderExchange, timeBorderExchange));
 		if (countSideChannel > 0)
 			System.out
-					.printf(
-							"        SideChannel time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+					.printf("        SideChannel time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
 							(timeSideChannel / 1000.0),
 							countSideChannel,
 							dataInSideChannel,
@@ -474,7 +483,7 @@ public class PxSystem {
 
 		dataInBorderExchange = 0;
 		dataOutBorderExchange = 0;
-		
+
 		dataInSideChannel = 0;
 		dataOutSideChannel = 0;
 	}
@@ -524,12 +533,16 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
 		barrier.barrier();
-
-		timeBarrier += System.nanoTime() - start;
-		countBarrier++;
+		if (logger.isInfoEnabled()) {
+			timeBarrier += System.nanoTime() - start;
+			countBarrier++;
+		}
 	}
 
 	public void silentBarrier() throws IOException {
@@ -548,7 +561,10 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 		if (array instanceof double[]) {
 			doubleCollectives.reduceToRoot.reduceToRoot((double[]) array,
 					extent, ReduceOperation);
@@ -571,24 +587,26 @@ public class PxSystem {
 			// eeek! not supported
 			throw new RuntimeException("Not implemented");
 		}
-
-		timeReduceToRoot += System.nanoTime() - start;
-		countReduceToRoot++;
+		if (logger.isInfoEnabled()) {
+			timeReduceToRoot += System.nanoTime() - start;
+			countReduceToRoot++;
+		}
 	}
 
-	public <T> void reduceToRoot(Array2d<T> array) throws IOException {
+	public <T,U extends Array2d<T,U>> void reduceToRoot(Array2d<T,U> array) throws IOException {
 		if (nrCPUs == 1) {
 			// nothing to reduce any further, just create an alias
-			array.setPartialData(array.getPartialWidth(), array
-					.getPartialHeight(), array.getData(), Array2d.LOCAL_FULL);
+			array.setPartialData(array.getPartialWidth(),
+					array.getPartialHeight(), array.getData(),
+					Array2d.LOCAL_FULL);
 			array.setReduceOperation(null);
 			return;
 		}
 
-		reduceToRoot(array.getData(), array.getExtent(), array
-				.getReduceOperation());
-		array.setData(array.getPartialWidth(), array.getPartialHeight(), array
-				.getData(), Array2d.GLOBAL_VALID);
+		reduceToRoot(array.getData(), array.getExtent(),
+				array.getReduceOperation());
+		array.setData(array.getPartialWidth(), array.getPartialHeight(),
+				array.getData(), Array2d.GLOBAL_VALID);
 		array.setReduceOperation(null);
 	}
 
@@ -600,7 +618,10 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 		if (array instanceof double[]) {
 			doubleCollectives.reduceToAll.reduceToAll((double[]) array, extent,
 					ReduceOperation);
@@ -624,20 +645,23 @@ public class PxSystem {
 			throw new RuntimeException("Not implemented");
 		}
 
-		timeReduceToAll += System.nanoTime() - start;
-		countReduceToAll++;
+		if (logger.isInfoEnabled()) {
+			timeReduceToAll += System.nanoTime() - start;
+			countReduceToAll++;
+		}
 	}
 
-	public <T> void reduceToAll(Array2d<T> array) throws Exception {
+	public <T,U extends Array2d<T,U>> void reduceToAll(Array2d<T,U> array) throws Exception {
 		if (nrCPUs == 1) {
-			array.setPartialData(array.getPartialWidth(), array
-					.getPartialHeight(), array.getData(), Array2d.LOCAL_FULL);
+			array.setPartialData(array.getPartialWidth(),
+					array.getPartialHeight(), array.getData(),
+					Array2d.LOCAL_FULL);
 			array.setReduceOperation(null);
 			return;
 		}
 
-		reduceToAll(array.getData(), array.getExtent(), array
-				.getReduceOperation());
+		reduceToAll(array.getData(), array.getExtent(),
+				array.getReduceOperation());
 		array.setPartialData(array.getPartialWidth(), array.getPartialHeight(),
 				array.getData(), Array2d.LOCAL_FULL);
 		array.setReduceOperation(null);
@@ -649,12 +673,35 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
 		doubleCollectives.broadcast.broadcast(data);
+		if (logger.isInfoEnabled()) {
+			timeBroadcast += System.nanoTime() - start;
+			countBroadcast++;
+		}
+	}
 
-		timeBroadcast += System.nanoTime() - start;
-		countBroadcast++;
+	public void broadcastArray(float[] data) throws Exception {
+
+		if (nrCPUs == 1) {
+			return;
+		}
+
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
+
+		floatCollectives.broadcast.broadcast(data);
+
+		if (logger.isInfoEnabled()) {
+			timeBroadcast += System.nanoTime() - start;
+			countBroadcast++;
+		}
 	}
 
 	public void broadcastArray(int[] data) throws Exception {
@@ -663,16 +710,21 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
 		intCollectives.broadcast.broadcast(data);
 
 		// Added -- J
-		timeBroadcast += System.nanoTime() - start;
-		countBroadcast++;
+		if (logger.isInfoEnabled()) {
+			timeBroadcast += System.nanoTime() - start;
+			countBroadcast++;
+		}
 	}
 
-	public <T> void broadcast(Array2d<T> a) throws Exception {
+	public <T,U extends Array2d<T,U>> void broadcast(Array2d<T,U> a) throws Exception {
 		if (nrCPUs == 1) {
 			// On 1 CPU we simply create an alias to the same data
 			a.setPartialData(a.getWidth(), a.getHeight(), a.getData(),
@@ -681,20 +733,27 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
-
-		if (a instanceof Array2dDoubles) {
-			broadcastDoubles((Array2dDoubles) a);
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
+		
+		if (a instanceof Array2dDouble<?>) {
+			broadcastDoubles((Array2dDouble<?>) a);
+		} else if (a instanceof Array2dFloat<?>) {
+			broadcastFloats((Array2dFloat<?>) a);
 		} else {
 			throw new RuntimeException("Not implemented");
 		}
 
 		// Added -- J
-		timeBroadcast += System.nanoTime() - start;
-		countBroadcast++;
+		if (logger.isInfoEnabled()) {
+			timeBroadcast += System.nanoTime() - start;
+			countBroadcast++;
+		}
 	}
 
-	private void broadcastDoubles(Array2dDoubles a) throws Exception {
+	private void broadcastDoubles(Array2dDouble<?> a) throws Exception {
 		int extent = a.getExtent();
 		int width = a.getWidth();
 		int height = a.getHeight();
@@ -718,11 +777,12 @@ public class PxSystem {
 		if (logger.isDebugEnabled()) {
 			logger.debug("PxSystem.broadcastDoubles:");
 		}
-
-		if (iAmRoot) {
-			dataOutBroadcast += len * Double.SIZE / 8;
-		} else {
-			dataInBroadcast += len * Double.SIZE / 8;
+		if (logger.isInfoEnabled()) {
+			if (iAmRoot) {
+				dataOutBroadcast += len * Double.SIZE / 8;
+			} else {
+				dataInBroadcast += len * Double.SIZE / 8;
+			}
 		}
 
 		doubleCollectives.broadcast.broadcast(data);
@@ -733,7 +793,47 @@ public class PxSystem {
 		a.setPartialData(width, height, data, Array2d.LOCAL_FULL);
 	}
 
-	public <T> void scatter(Array2d<T> a) throws Exception {
+	private void broadcastFloats(Array2dFloat<?> a) throws Exception {
+		int extent = a.getExtent();
+		int width = a.getWidth();
+		int height = a.getHeight();
+		int borderWidth = a.getBorderWidth();
+		int borderHeight = a.getBorderHeight();
+
+		int len = (width + borderWidth * 2) * (height + borderHeight * 2)
+				* extent;
+
+		float[] data = a.getData();
+
+		if (data != null && data.length != len) {
+			data = null;
+		}
+
+		if (data == null) {
+			data = new float[len];
+			data = a.createDataArray(len);
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.broadcastDoubles:");
+		}
+		if (logger.isInfoEnabled()) {
+			if (iAmRoot) {
+				dataOutBroadcast += len * Float.SIZE / 8;
+			} else {
+				dataInBroadcast += len * Float.SIZE / 8;
+			}
+		}
+
+		floatCollectives.broadcast.broadcast(data);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.scatterDoubles finished");
+		}
+		a.setPartialData(width, height, data, Array2d.LOCAL_FULL);
+	}
+
+	public <T,U extends Array2d<T,U>> void scatter(Array2d<T,U> a) throws Exception {
 		switch (a.getState()) {
 		case Array2d.LOCAL_PARTIAL:
 			// data is already scattered
@@ -752,21 +852,28 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
-		if (a instanceof Array2dDoubles) {
-			scatterDoubles((Array2dDoubles) a);
+		if (a instanceof Array2dDouble<?>) {
+			scatterDoubles((Array2dDouble<?>) a);
+		} else if (a instanceof Array2dFloat<?>) {
+			scatterFloats((Array2dFloat<?>) a);
 		} else {
 			throw new RuntimeException("Not implemented");
 		}
 
 		// Added -- J
-		timeScatter += System.nanoTime() - start;
-		countScatter++;
+		if (logger.isInfoEnabled()) {
+			timeScatter += System.nanoTime() - start;
+			countScatter++;
+		}
 
 	}
 
-	private void scatterDoubles(Array2dDoubles a) throws Exception {
+	private void scatterDoubles(Array2dDouble<?> a) throws Exception {
 		// Here we assume CPU 0 (root) to have a full & valid structure
 		// which is scattered to the partial structs of all nodes. East
 		// and west borders are also communicated (not north and south).
@@ -787,24 +894,30 @@ public class PxSystem {
 			// full data
 			double[] oldPartialData = a.getData();
 			double[] newPartialData = new double[len];
-			int offset = xSize * (getLclStartY(globH, myCPU)); //do NOT add, the borderHeight, here, we also copy the borders!
+			int offset = xSize * (getLclStartY(globH, myCPU)); // do NOT add,
+																// the
+																// borderHeight,
+																// here, we also
+																// copy the
+																// borders!
 
 			// FIXME DEBUG:
-			if (logger.isDebugEnabled() && offset + len >= oldPartialData.length) {
+			if (logger.isDebugEnabled()
+					&& offset + len >= oldPartialData.length) {
 				logger.debug("---");
 				logger.debug("scatterDoubles - rank: " + myCPU);
 				logger.debug("scatterDoubles - len: " + len);
 				logger.debug("scatterDoubles - offset: " + offset);
 				logger.debug("scatterDoubles - OldLength: "
 						+ oldPartialData.length);
-				
+
 				logger.debug("scatterDoubles - pWidth: " + pWidth);
 				logger.debug("scatterDoubles - pHeight: " + pHeight);
 				logger.debug("scatterDoubles - bWidth: " + bWidth);
 				logger.debug("scatterDoubles - bHeight: " + bHeight);
 				logger.debug("scatterDoubles - extent: " + extent);
 				logger.debug("scatterDoubles - state: " + a.stateString());
-				
+
 				logger.debug("---");
 			}
 
@@ -842,12 +955,16 @@ public class PxSystem {
 		if (iAmRoot) {
 			doubleCollectives.scatter.scatter(a.getData(), offsets, sizes,
 					data, offset, sizes[myCPU]);
-			dataOutScatter += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
+			if (logger.isInfoEnabled()) {
+				dataOutScatter += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
+			}
 		} else {
 			// reading global data will give an error
 			doubleCollectives.scatter.scatter(null, offsets, sizes, data,
 					offset, sizes[myCPU]);
-			dataInScatter += sizes[myCPU] * Double.SIZE / 8;
+			if (logger.isInfoEnabled()) {
+				dataInScatter += sizes[myCPU] * Double.SIZE / 8;
+			}
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("PxSystem.scatterDoubles comm finished");
@@ -858,7 +975,109 @@ public class PxSystem {
 		}
 	}
 
-	public <T> void gather(Array2d<T> a) throws IOException {
+	private void scatterFloats(Array2dFloat<?> a) throws Exception {
+		// Here we assume CPU 0 (root) to have a full & valid structure
+		// which is scattered to the partial structs of all nodes. East
+		// and west borders are also communicated (not north and south).
+
+		int globH = a.getHeight();
+		int extent = a.getExtent();
+		int pWidth = a.getWidth();
+		int pHeight = getPartHeight(globH, myCPU);
+		int bWidth = a.getBorderWidth();
+		int bHeight = a.getBorderHeight();
+
+		int len = (pWidth + bWidth * 2) * (pHeight + bHeight * 2) * extent;
+		int xSize = (pWidth + bWidth * 2) * extent;
+
+		if (a.getState() == Array2d.LOCAL_FULL
+				|| a.getState() == Array2d.GLOBAL_CREATED) {
+			// no need for communication, just cut the partial data out of the
+			// full data
+			float[] oldPartialData = a.getData();
+			float[] newPartialData = new float[len];
+			int offset = xSize * (getLclStartY(globH, myCPU)); // do NOT add,
+																// the
+																// borderHeight,
+																// here, we also
+																// copy the
+																// borders!
+
+			// FIXME DEBUG:
+			if (logger.isDebugEnabled()
+					&& offset + len >= oldPartialData.length) {
+				logger.debug("---");
+				logger.debug("scatterDoubles - rank: " + myCPU);
+				logger.debug("scatterDoubles - len: " + len);
+				logger.debug("scatterDoubles - offset: " + offset);
+				logger.debug("scatterDoubles - OldLength: "
+						+ oldPartialData.length);
+
+				logger.debug("scatterDoubles - pWidth: " + pWidth);
+				logger.debug("scatterDoubles - pHeight: " + pHeight);
+				logger.debug("scatterDoubles - bWidth: " + bWidth);
+				logger.debug("scatterDoubles - bHeight: " + bHeight);
+				logger.debug("scatterDoubles - extent: " + extent);
+				logger.debug("scatterDoubles - state: " + a.stateString());
+
+				logger.debug("---");
+			}
+
+			System.arraycopy(oldPartialData, offset, newPartialData, 0, len);
+
+			a.setPartialData(pWidth, pHeight, newPartialData,
+					Array2d.LOCAL_PARTIAL);
+			return;
+		}
+
+		float[] data = a.getData();
+		if (data == null || data.length != len) {
+			data = new float[len];
+		}
+
+		int[] offsets = new int[nrCPUs];
+		int[] sizes = new int[nrCPUs];
+
+		int totalSize = 0;
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.scatterDoubles:");
+		}
+		for (int partner = 0; partner < nrCPUs; partner++) {
+			offsets[partner] = xSize * (getLclStartY(globH, partner) + bHeight);
+			sizes[partner] = xSize * getPartHeight(globH, partner);
+			totalSize += sizes[partner];
+			if (logger.isDebugEnabled()) {
+				logger.debug("CPU " + partner + ": offset = "
+						+ offsets[partner] + ", size = " + sizes[partner]);
+			}
+		}
+
+		int offset = xSize * bHeight;
+		if (iAmRoot) {
+			floatCollectives.scatter.scatter(a.getData(), offsets, sizes, data,
+					offset, sizes[myCPU]);
+			if (logger.isInfoEnabled()) {
+				dataOutScatter += (totalSize - sizes[myCPU]) * Float.SIZE / 8;
+			}
+		} else {
+			// reading global data will give an error
+			floatCollectives.scatter.scatter(null, offsets, sizes, data,
+					offset, sizes[myCPU]);
+			if (logger.isInfoEnabled()) {
+				dataInScatter += sizes[myCPU] * Float.SIZE / 8;
+			}
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.scatterFloats comm finished");
+		}
+		a.setPartialData(pWidth, pHeight, data, Array2d.LOCAL_PARTIAL);
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.scatterFloats finished");
+		}
+	}
+
+	public <T,U extends Array2d<T,U>> void gather(Array2d<T,U> a) throws IOException {
 
 		if (nrCPUs == 1) {
 			// On 1 CPU we simply create an alias to the same data
@@ -867,20 +1086,27 @@ public class PxSystem {
 			return;
 		}
 
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
-		if (a instanceof Array2dDoubles) {
-			gatherDoubles((Array2dDoubles) a);
+		if (a instanceof Array2dDouble<?>) {
+			gatherDoubles((Array2dDouble<?>) a);
+		} else if (a instanceof Array2dFloat<?>) {
+			gatherFloats((Array2dFloat<?>) a);
 		} else {
 			throw new RuntimeException("Not implemented");
 		}
 		// Added -- J
-		timeGather += System.nanoTime() - start;
-		countGather++;
+		if (logger.isInfoEnabled()) {
+			timeGather += System.nanoTime() - start;
+			countGather++;
+		}
 
 	}
 
-	private void gatherDoubles(Array2dDoubles a) throws IOException {
+	private  void gatherDoubles(Array2dDouble<?> a) throws IOException {
 		// Here we assume CPU 0 (root) to have a full & valid structure
 		// which is scattered to the partial structs of all nodes. East
 		// and west borders are also communicated (not north and south).
@@ -933,10 +1159,12 @@ public class PxSystem {
 		int offset = bHeight * xSize;
 		// int offset = 0;
 
-		if (iAmRoot) {
-			dataInGather += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
-		} else {
-			dataOutGather += sizes[myCPU] * Double.SIZE / 8;
+		if (logger.isInfoEnabled()) {
+			if (iAmRoot) {
+				dataInGather += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
+			} else {
+				dataOutGather += sizes[myCPU] * Double.SIZE / 8;
+			}
 		}
 		doubleCollectives.gather.gather(a.getData(), offset, sizes[myCPU],
 				data, offsets, sizes);
@@ -945,7 +1173,76 @@ public class PxSystem {
 		if (logger.isDebugEnabled()) {
 			logger.debug("PxSystem.gatherDoubles finished");
 		}
-		
+
+	}
+
+	private void gatherFloats(Array2dFloat<?> a) throws IOException {
+		// Here we assume CPU 0 (root) to have a full & valid structure
+		// which is scattered to the partial structs of all nodes. East
+		// and west borders are also communicated (not north and south).
+
+		if (a.getState() == Array2d.LOCAL_FULL) {
+			return;
+			// the root already has the full image
+		}
+
+		int height = a.getHeight();
+		int extent = a.getExtent();
+		int width = a.getWidth();
+		int bWidth = a.getBorderWidth();
+		int bHeight = a.getBorderHeight();
+
+		int len = (width + bWidth * 2) * (height + bHeight * 2) * extent;
+
+		float[] data = null;
+		if (iAmRoot) {
+			data = new float[len];
+		}
+
+		int xSize = (width + bWidth * 2) * extent;
+
+		int[] offsets = new int[nrCPUs];
+		int[] sizes = new int[nrCPUs];
+		int totalSize = 0;
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.gatherDoubles:");
+		}
+		for (int partner = 0; partner < nrCPUs; partner++) {
+			offsets[partner] = xSize
+					* (getLclStartY(height, partner) + bHeight);
+			sizes[partner] = xSize * getPartHeight(height, partner);
+			totalSize += sizes[partner];
+			if (logger.isDebugEnabled()) {
+				logger.debug("CPU " + partner + ": offset = "
+						+ offsets[partner] + ", size = " + sizes[partner]);
+				if (data != null) {
+					logger.debug("'data' size: " + data.length);
+				}
+			}
+		}
+		if (a.getData() == null) {
+			// FIXME bug??
+			throw new Error("Panic!!! no partial Data");
+		}
+
+		int offset = bHeight * xSize;
+		// int offset = 0;
+
+		if (logger.isInfoEnabled()) {
+			if (iAmRoot) {
+				dataInGather += (totalSize - sizes[myCPU]) * Float.SIZE / 8;
+			} else {
+				dataOutGather += sizes[myCPU] * Float.SIZE / 8;
+			}
+		}
+		floatCollectives.gather.gather(a.getData(), offset, sizes[myCPU], data,
+				offsets, sizes);
+
+		a.setData(width, height, data, Array2d.GLOBAL_VALID);
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.gatherFloats finished");
+		}
 
 	}
 
@@ -954,7 +1251,10 @@ public class PxSystem {
 
 		// barrier(); // FIXME temporary measurement barrier
 		// Added -- J
-		long start = System.nanoTime();
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
 
 		// Border exchange in vertical direction (top <---> bottom)
 		int prevCPU = myCPU - 1;
@@ -975,20 +1275,26 @@ public class PxSystem {
 				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
 				// + borderSize));
 				writeMessage.finish();
-				dataOutBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 8;
+				}
 
 				ReadMessage readMessage = receive(nextCPU);
 				readMessage.readArray(a, off - stride / 2 + height * xSize,
 						borderSize);
 				readMessage.finish();
-				dataInBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 8;
+				}
 			}
 			if (prevCPU >= 0) {
 				ReadMessage readMessage = receive(prevCPU);
 				readMessage.readArray(a, off - stride / 2 - borderSize,
 						borderSize);
 				readMessage.finish();
-				dataInBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 8;
+				}
 
 				WriteMessage writeMessage = newMessage(prevCPU);
 				writeMessage.writeArray(a, off - stride / 2, borderSize);
@@ -996,7 +1302,9 @@ public class PxSystem {
 				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
 				// + borderSize));
 				writeMessage.finish();
-				dataOutBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 8;
+				}
 			}
 		} else {
 			if (prevCPU >= 0) {
@@ -1004,7 +1312,9 @@ public class PxSystem {
 				readMessage.readArray(a, off - stride / 2 - borderSize,
 						borderSize);
 				readMessage.finish();
-				dataInBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 8;
+				}
 
 				WriteMessage writeMessage = newMessage(prevCPU);
 				writeMessage.writeArray(a, off - stride / 2, borderSize);
@@ -1012,7 +1322,9 @@ public class PxSystem {
 				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
 				// + borderSize));
 				writeMessage.finish();
-				dataOutBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 8;
+				}
 			}
 
 			if (nextCPU < nrCPUs) {
@@ -1023,18 +1335,24 @@ public class PxSystem {
 				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from +
 				// borderSize));
 				writeMessage.finish();
-				dataOutBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 8;
+				}
 
 				ReadMessage readMessage = receive(nextCPU);
 				readMessage.readArray(a, off - stride / 2 + height * xSize,
 						borderSize);
 				readMessage.finish();
-				dataInBorderExchange += borderSize * 8;
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 8;
+				}
 			}
 		}
 		// Added -- J
-		timeBorderExchange += System.nanoTime() - start;
-		countBorderExchange++;
+		if (logger.isInfoEnabled()) {
+			timeBorderExchange += System.nanoTime() - start;
+			countBorderExchange++;
+		}
 	}
 
 	// public static void borderExchange_Orig(double[] a, int width, int height,
@@ -1102,6 +1420,115 @@ public class PxSystem {
 	// timeBorderExchange += System.nanoTime() - start;
 	// countBorderExchange++;
 	// }
+
+	public void borderExchange(float[] a, int width, int height, int off,
+			int stride, int ySize) throws Exception {
+
+		// barrier(); // FIXME temporary measurement barrier
+		// Added -- J
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
+
+		// Border exchange in vertical direction (top <---> bottom)
+		int prevCPU = myCPU - 1;
+		int nextCPU = myCPU + 1;
+
+		int xSize = width + stride;
+
+		// System.out.println("Border exchange: " + xSize + "x" + ySize + " (" +
+		// (xSize*ySize) + ")");
+
+		final int borderSize = xSize * ySize;
+		if ((myCPU & 1) == 0) {
+			if (nextCPU < nrCPUs) {
+				WriteMessage writeMessage = newMessage(nextCPU);
+				writeMessage.writeArray(a, off - stride / 2 + (height - ySize)
+						* xSize, borderSize);
+				// int from = off - stride / 2 + (height - ySize) * xSize;
+				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
+				// + borderSize));
+				writeMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 4;
+				}
+
+				ReadMessage readMessage = receive(nextCPU);
+				readMessage.readArray(a, off - stride / 2 + height * xSize,
+						borderSize);
+				readMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 4;
+				}
+			}
+			if (prevCPU >= 0) {
+				ReadMessage readMessage = receive(prevCPU);
+				readMessage.readArray(a, off - stride / 2 - borderSize,
+						borderSize);
+				readMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 4;
+				}
+
+				WriteMessage writeMessage = newMessage(prevCPU);
+				writeMessage.writeArray(a, off - stride / 2, borderSize);
+				// int from = off - stride / 2;
+				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
+				// + borderSize));
+				writeMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 4;
+				}
+			}
+		} else {
+			if (prevCPU >= 0) {
+				ReadMessage readMessage = receive(prevCPU);
+				readMessage.readArray(a, off - stride / 2 - borderSize,
+						borderSize);
+				readMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 4;
+				}
+
+				WriteMessage writeMessage = newMessage(prevCPU);
+				writeMessage.writeArray(a, off - stride / 2, borderSize);
+				// int from = off - stride / 2;
+				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from
+				// + borderSize));
+				writeMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 4;
+				}
+			}
+
+			if (nextCPU < nrCPUs) {
+				WriteMessage writeMessage = newMessage(nextCPU);
+				writeMessage.writeArray(a, off - stride / 2 + (height - ySize)
+						* xSize, borderSize);
+				// int from = off - stride / 2 + (height - ySize) * xSize;
+				// writeMessage.writeArray(Arrays.copyOfRange(a, from, from +
+				// borderSize));
+				writeMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataOutBorderExchange += borderSize * 4;
+				}
+
+				ReadMessage readMessage = receive(nextCPU);
+				readMessage.readArray(a, off - stride / 2 + height * xSize,
+						borderSize);
+				readMessage.finish();
+				if (logger.isInfoEnabled()) {
+					dataInBorderExchange += borderSize * 4;
+				}
+			}
+		}
+		// Added -- J
+		if (logger.isInfoEnabled()) {
+			timeBorderExchange += System.nanoTime() - start;
+			countBorderExchange++;
+		}
+	}
 
 	public int getPartHeight(int height, int CPUnr) {
 		int minLocalH = height / nrCPUs;

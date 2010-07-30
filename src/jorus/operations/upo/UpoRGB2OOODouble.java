@@ -11,7 +11,7 @@
 package jorus.operations.upo;
 
 
-public class UpoRGB2OOO extends Upo<double[]> {
+public class UpoRGB2OOODouble extends Upo<double[]> {
     
     public void doIt(double[] a) {
         // NOTE: here we assume array 'a' to be in RGB color space

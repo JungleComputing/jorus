@@ -40,9 +40,9 @@ public class PatUpo {
 	 * return dst; }
 	 */
 
-	public static <T> Array2d<T> dispatch(Array2d<T> s1, boolean inplace,
+	public static <T,U extends Array2d<T,U>> U dispatch(U s1, boolean inplace,
 			Upo<T> upo) {
-		Array2d<T> dst = s1;
+		U dst = s1;
 
 		if (PxSystem.initialized()) { // run parallel
 

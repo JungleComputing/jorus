@@ -9,7 +9,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
-import jorus.array.Array2dDoubles;
+import jorus.array.Array2dDouble;
 import jorus.array.Array2dScalarDouble;
 import jorus.parallel.PxSystem;
 import jorus.pixel.PixelDouble;
@@ -23,15 +23,15 @@ public class JorusUV {
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 5; // 15 for minimal measurement
+	private static final int STEP_THETA = 5; // 5// 15 for minimal measurement
 
 	private static final double MIN_SX = 1; // 1.0 for minimal measurement
 	private static final double MAX_SX = 4; // 5.0 for minimal measurement
-	private static final double STEP_SX = 1; // 2.0 for minimal measurement
+	private static final double STEP_SX = 1;//4; //1 // 2.0 for minimal measurement
 
 	private static final double MIN_SY = 3; // 3.0 for minimal measurement
 	private static final double MAX_SY = 9; // 11.0 for minimal measurement
-	private static final double STEP_SY = 2; // 4.0 for minimal measurement
+	private static final double STEP_SY = 2;//9; //2 // 4.0 for minimal measurement
 
 	private static final boolean Fixed = true; // Fixed MAX_SX: YES/NO
 
@@ -55,7 +55,7 @@ public class JorusUV {
 			throws Exception {
 		file = new File(fileName);
 
-		if (Integer.parseInt(poolSize) > 0) {
+		if (Integer.parseInt(poolSize) > 1) {
 			logger.info("Initializing PxSystem.");
 			try {
 				px = PxSystem.init(poolName, poolSize);
@@ -134,7 +134,14 @@ public class JorusUV {
 								.convGaussAnisotropic2d(sx, 0, 3, sy, 0, 3,
 										thetaRad, false);
 						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
-								.negDiv(filtIm2, true);
+						.posDiv(filtIm2, true);
+//						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
+//								.negDiv(filtIm2, true);
+//						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
+//						.div(filtIm2, true);
+//						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1
+//						.absDiv(filtIm2, true);
+//						Array2dScalarDouble contrastIm = (Array2dScalarDouble) filtIm1;
 						contrastIm = (Array2dScalarDouble) contrastIm
 								.mulVal(new PixelDouble(
 										new double[] { sx * sy }), true);
@@ -191,11 +198,11 @@ public class JorusUV {
 
 			Array2dScalarDouble viewImage = result;// .clone(0,0);
 			try {
-//				viewImage(viewImage.getData(), viewImage.getWidth(),
-//						viewImage.getHeight(), name);
+				viewImage(viewImage.getData(), viewImage.getWidth(),
+						viewImage.getHeight(), name);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 		}
 
@@ -237,7 +244,7 @@ public class JorusUV {
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITER; i++) {
 			singleRun(array, master, "JorusUV " + i);
-			System.err.println("run " + i + ": double[] #" + Array2dDoubles.getAndResetcreateCounter());
+			System.err.println("run " + i + ": double[] #" + Array2dDouble.getAndResetcreateCounter());
 			if (px != null) {
 				px.printStatistics();
 			}

@@ -23,8 +23,8 @@ public class PatGeneralizedConvolution1dRotated {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PatGeneralizedConvolution1dRotated.class);
 
-	public static <T> Array2d<T> dispatch(Array2d<T> sourceImage,
-			Array2d<T> kernel, double theta,
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> sourceImage,
+			Array2d<T,?> kernel, double theta,
 			GeneralizedConvolutionRotated1d<T> convolutionOperation,
 			SetBorder<T> borderOperation) {
 
@@ -33,7 +33,7 @@ public class PatGeneralizedConvolution1dRotated {
 		int borderHeight = ((int) (((kernel.getWidth() - 1) / 2) * Math
 				.abs(Math.sin(theta)))) + 1;
 
-		Array2d<T> result = null;
+		U result = null;
 
 		if (borderWidth > sourceImage.getBorderWidth()
 				|| borderHeight > sourceImage.getBorderHeight()) {
@@ -54,7 +54,7 @@ public class PatGeneralizedConvolution1dRotated {
 				if (kernel.getState() != Array2d.LOCAL_FULL) {
 					px.broadcast(kernel);
 				}
-				Array2d<T> temp = result.clone();
+				U temp = result.clone();
 				PatSetBorder.dispatch(temp, borderWidth, borderHeight,
 						borderOperation);
 
@@ -66,7 +66,7 @@ public class PatGeneralizedConvolution1dRotated {
 			}
 
 		} else { // run sequential
-			Array2d<T> temp = result.clone();
+			U temp = result.clone();
 			PatSetBorder.dispatch(temp, borderWidth, borderHeight,
 					borderOperation);
 

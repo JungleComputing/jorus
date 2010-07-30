@@ -34,7 +34,7 @@ public abstract class GeneralizedConvolution1d<T> {
 	 * @param dimension 0 = horizontal, 1 = vertical
 	 * @param parallel
 	 */
-	public void init(Array2d<T> source, Array2d<T> kernel, int dimension,
+	public void init(Array2d<T,?> source, Array2d<T,?> kernel, int dimension,
 			boolean parallel) {
 		
 		this.dimension = dimension;

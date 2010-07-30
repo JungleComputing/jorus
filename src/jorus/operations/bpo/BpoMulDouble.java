@@ -11,14 +11,11 @@
 package jorus.operations.bpo;
 
 
-public class BpoMulDouble extends Bpo<double[]>
-{
-	public void doIt(double[] dst, double[] s2)
-	{
-		for (int j=0; j<height; j++) {
+public class BpoMulDouble extends Bpo<double[]> {
+	
+	public void doRow(double[] dst, double[] src, int row) {
 			for (int i=0; i<width; i++) {
-				dst[offset1+j*(width+stride1)+i] *= s2[offset2+j*(width+stride2)+i];
+				dst[offset1+row*(width+stride1)+i] *= src[offset2+row*(width+stride2)+i];
 			}
-		}
 	}
 }

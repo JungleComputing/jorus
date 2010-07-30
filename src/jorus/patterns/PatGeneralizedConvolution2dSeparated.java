@@ -17,18 +17,18 @@ import jorus.parallel.PxSystem;
 //import array.CxArray2dScalarDouble;
 
 public class PatGeneralizedConvolution2dSeparated {
-	public static <T> Array2d<T> dispatch(Array2d<T> source,
-			Array2d<T> kernelX, Array2d<T> kernelY,
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> source,
+			Array2d<T,?> kernelX, Array2d<T,?> kernelY,
 			GeneralizedConvolution1d<T> gco, SetBorder<T> sbo, boolean inplace) {
 		int numX = kernelX.getWidth() / 2;
 		int numY = kernelY.getWidth() / 2;
 
-		Array2d<T> dst = null;
+		U dst = null;
 
 		if (numX > source.getBorderWidth() || numY > source.getBorderHeight()) {
 			dst = source.clone(numX, numY);
 		} else if(inplace) {
-			dst = source;
+			dst = (U) source;
 		} else {
 			dst = source.clone();
 		}
@@ -53,8 +53,8 @@ public class PatGeneralizedConvolution2dSeparated {
 				}
 
 				PatSetBorder.dispatch(dst, numX, 0, sbo);
-				Array2d<T> tmp = dst.clone();
-				gco.init(dst, kernelX, 0, true);
+				U tmp = dst.clone();
+				gco.init(tmp, kernelX, 0, true);
 				gco.doIt(tmp.getData(), dst
 						.getData(), kernelX.getData());
 
@@ -70,7 +70,7 @@ public class PatGeneralizedConvolution2dSeparated {
 
 		} else { // run sequential
 			PatSetBorder.dispatch(dst, numX, 0, sbo);
-			Array2d<T> tmp = dst.clone();
+			U tmp = dst.clone();
 			gco.init(dst, kernelX, 0, false);
 			gco.doIt(tmp.getData(), dst.getData(), kernelX
 					.getData());

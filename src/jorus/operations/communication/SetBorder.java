@@ -20,7 +20,7 @@ public abstract class SetBorder<T> {
 	protected int rowSize;
 	protected boolean doParallel = false;
 
-	public void init(Array2d<T> source, boolean parallel) {	
+	public void init(Array2d<T,?> source, boolean parallel) {	
 		doParallel = parallel;
 		
 		extent = source.getExtent();

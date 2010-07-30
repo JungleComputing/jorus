@@ -10,7 +10,7 @@ public abstract class ReduceToRoot<T> extends Collective<T> {
 		super(system, c);
 	}
 
-	public void reduceToRoot(Array2d<T> data) throws IOException {
+	public <U extends Array2d<T,U>> void reduceToRoot(U data) throws IOException {
 		reduceToRoot(data.getData(), data.getExtent(), data
 				.getReduceOperation());
 	}

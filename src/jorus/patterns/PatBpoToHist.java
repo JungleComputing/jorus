@@ -15,7 +15,7 @@ import jorus.parallel.PxSystem;
 import jorus.parallel.ReduceOp;
 
 public class PatBpoToHist {
-	public static <T> double[] dispatch(Array2d<T> s1, Array2d<T> s2,
+	public static <T,U extends Array2d<T,U>> double[] dispatch(U s1, U s2,
 			int nBins, double minVal, double maxVal, BpoToHist<T> bpo) {
 		double[] dst = new double[nBins];
 

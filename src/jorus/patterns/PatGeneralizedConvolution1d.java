@@ -15,8 +15,8 @@ import jorus.operations.generalizedconvolution.GeneralizedConvolution1d;
 import jorus.parallel.PxSystem;
 
 public class PatGeneralizedConvolution1d {
-	public static <T> Array2d<T> dispatch(Array2d<T> sourceImage,
-			Array2d<T> kernel,
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T, U> sourceImage,
+			Array2d<T,?> kernel,
 			GeneralizedConvolution1d<T> convolutionOperation, int dimension,
 			SetBorder<T> borderOperation) {
 		int requiredBorderSize = kernel.getWidth() / 2;
@@ -27,7 +27,7 @@ public class PatGeneralizedConvolution1d {
 				&& requiredBorderSize > sourceImage.getBorderHeight()) {
 			sourceImage = sourceImage.clone(0, requiredBorderSize);
 		}
-		Array2d<T> resultImage = null;
+		U resultImage = null;
 		if (PxSystem.initialized()) {
 
 			final PxSystem px = PxSystem.get();
@@ -55,7 +55,7 @@ public class PatGeneralizedConvolution1d {
 			PatSetBorder.dispatch(sourceImage, requiredBorderSize, 0,
 					borderOperation);
 			resultImage = sourceImage.clone();
-			convolutionOperation.init(sourceImage, kernel, dimension, true);
+			convolutionOperation.init(sourceImage, kernel, dimension, false);
 			convolutionOperation.doIt(resultImage.getData(), sourceImage
 					.getData(), kernel.getData());
 		}

@@ -12,11 +12,14 @@ package jorus.operations.generalizedconvolution;
 import jorus.array.Array2d;
 
 public abstract class GeneralizedConvolutionRotated1d<T> {
-	private enum Signature {
-		VECTOR_VECTOR, VECTOR_SCALAR, SCALAR_SCALAR, INVALID;
-	}
+	private static final int VECTOR_VECTOR =1, VECTOR_SCALAR = 2, SCALAR_SCALAR = 3, INVALID= 0;
+	
+//	private enum Signature {
+//		VECTOR_VECTOR, VECTOR_SCALAR, SCALAR_SCALAR, INVALID;
+//	}
 
-	protected Signature sig;
+//	protected Signature sig;
+	protected int signature;
 	
 	protected int width = 0;
 	protected int height = 0;
@@ -30,7 +33,9 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 	protected int halfKerSize = 0;
 	
 	protected double phiRad;
-	protected double sinPhi, cosPhi;		
+	protected float sinPhi, cosPhi;		
+	protected float absCosPhi;
+	protected float absSinPhi;
 
 	/**
 	 * 
@@ -39,7 +44,7 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 	 * @param phiRad the angle of rotation in radians
 	 * @param parallel
 	 */
-	public void init(Array2d<T> s1, Array2d<T> ker1, double phiRad,
+	public void init(Array2d<T,?> s1, Array2d<T,?> ker1, double phiRad,
 			boolean parallel) {
 
 		extent = s1.getExtent();
@@ -61,25 +66,33 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 
 		if (extent == 1) {
 			if (ker1.getExtent() == 1) {
-				sig = Signature.SCALAR_SCALAR;
+//				sig = Signature.SCALAR_SCALAR;
+				signature = SCALAR_SCALAR;
 			} else {
-				sig = Signature.INVALID;
+//				sig = Signature.INVALID;
+				signature = INVALID;
 			}
 		} else {
 			if (ker1.getExtent() == 1) {
-				sig = Signature.VECTOR_SCALAR;
+//				sig = Signature.VECTOR_SCALAR;
+				signature = VECTOR_SCALAR;
 			} else if (extent == ker1.getExtent()) {
-				sig = Signature.VECTOR_VECTOR;
+//				sig = Signature.VECTOR_VECTOR;
+				signature = VECTOR_VECTOR;
 			} else {
-				sig = Signature.INVALID;
+//				sig = Signature.INVALID;
+				signature = INVALID;
 			}
 		}
-		cosPhi = Math.cos(phiRad);
-		sinPhi = Math.sin(phiRad);		
+		cosPhi = (float) Math.cos(phiRad);
+		sinPhi = (float) Math.sin(phiRad);
+		absCosPhi = Math.abs(cosPhi);
+		absSinPhi = Math.abs(sinPhi);
 	}
 
 	public void doIt(T dst, T src, T ker) {
-		switch (sig) {
+//		switch (sig) {
+		switch (signature) {
 		case SCALAR_SCALAR:
 			doItSS(dst, src, ker);
 			break;

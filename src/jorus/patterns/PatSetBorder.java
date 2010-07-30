@@ -18,7 +18,7 @@ import jorus.parallel.PxSystem;
 
 public class PatSetBorder
 {
-    public static <T> void dispatch(Array2d<T> s1,
+    public static <T,U extends Array2d<T,U>> void dispatch(Array2d<T,U> s1,
             int numX, int numY, SetBorder<T> sbo)
     {
         if (PxSystem.initialized()) {				// run parallel

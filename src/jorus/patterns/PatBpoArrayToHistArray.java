@@ -12,7 +12,7 @@ public class PatBpoArrayToHistArray {
 	// private static double [] buffer;
 	// private static double [] dst;
 
-	public static <T> double[][] dispatch(Array2d<T> s1, Array2d<T>[] a2, int nBins,
+	public static <T,U extends Array2d<T,U>> double[][] dispatch(U s1, U[] a2, int nBins,
 			double minVal, double maxVal, BpoToHist<T> bpo) {
 
 		double[][] result = new double[a2.length][nBins];
@@ -34,7 +34,7 @@ public class PatBpoArrayToHistArray {
 
 				for (int i = 0; i < a2.length; i++) {
 
-					Array2d<T> s2 = a2[i];
+					U s2 = a2[i];
 
 					if (s2.getState() != Array2d.LOCAL_PARTIAL) {
 						if (root)
@@ -94,7 +94,7 @@ public class PatBpoArrayToHistArray {
 
 		} else { // run sequential
 			for (int i = 0; i < a2.length; i++) {
-				Array2d<T> s2 = a2[i];
+				U s2 = a2[i];
 
 				bpo.init(s1, s2, false);
 				bpo.doIt(result[i], s1.getData(), s2.getData(),

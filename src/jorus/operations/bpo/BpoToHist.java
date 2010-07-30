@@ -24,8 +24,7 @@ public abstract class BpoToHist<T>
 	protected int	stride2 = 0;
 	
 
-	public void init(Array2d<T> s1, Array2d<T> s2, boolean parallel)
-	{
+	public void init(Array2d<T,?> s1, Array2d<T,?> s2, boolean parallel) {
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1  = s1.getExtent();
 		int bw1 = s1.getBorderWidth();

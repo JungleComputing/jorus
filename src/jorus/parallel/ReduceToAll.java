@@ -10,7 +10,7 @@ public abstract class ReduceToAll<T> extends Collective<T> {
 		super(system, c);
 	}
 
-	public void reduceToAll(Array2d<T> data) throws IOException {
+	public <U extends Array2d<T,U>> void reduceToAll(U data) throws IOException {
 		reduceToAll(data.getData(), data.getExtent(), data
 				.getReduceOperation());
 	}

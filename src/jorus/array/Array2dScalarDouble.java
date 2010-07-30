@@ -13,7 +13,7 @@ import jorus.operations.bpo.BpoToHistDouble;
 import jorus.patterns.PatBpoArrayToHistArray;
 import jorus.patterns.PatBpoToHist;
 
-public class Array2dScalarDouble extends Array2dDoubles {
+public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 	/**
 	 * 
 	 */
@@ -22,6 +22,7 @@ public class Array2dScalarDouble extends Array2dDoubles {
 	/** * Public Methods ********************************************** */
 
 	public Array2dScalarDouble(Array2dScalarDouble orig, int newBW, int newBH) {
+		
 		super(orig, newBW, newBH);
 	}
 
@@ -125,6 +126,9 @@ public class Array2dScalarDouble extends Array2dDoubles {
 
 	@Override
 	public Array2dScalarDouble clone(int newBorderWidth, int newBorderHeight) {
+		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
+			return clone();
+		}
 		return new Array2dScalarDouble(this, newBorderWidth, newBorderHeight);
 	}
 
@@ -133,6 +137,13 @@ public class Array2dScalarDouble extends Array2dDoubles {
 		Array2dScalarDouble result = new Array2dScalarDouble(getWidth(), getHeight(), getBorderWidth(), getBorderHeight(), false);
 		result.setState(GLOBAL_VALID);
 		setState(GLOBAL_VALID);
+		return result;
+	}
+	
+	@Override
+	public Array2dScalarDouble createCompatibleArray(int width, int height, int borderWidth,
+			int borderHeight) {
+		Array2dScalarDouble result = new Array2dScalarDouble(width, height, borderWidth, borderHeight, true);
 		return result;
 	}
 }

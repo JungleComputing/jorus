@@ -24,8 +24,7 @@ public abstract class Svo<T>
 	protected int		stride = 0;
 
 
-	public void init(Array2d<T> s1, boolean parallel)
-	{
+	public void init(Array2d<T,?> s1, boolean parallel) {
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int bw1 = s1.getBorderWidth();
 

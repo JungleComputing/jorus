@@ -20,9 +20,11 @@ import org.slf4j.LoggerFactory;
 public class PatGeneralizedConvolution2dRotatedSeparated {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PatGeneralizedConvolution2dRotatedSeparated.class);
-
-	public static <T> Array2d<T> dispatch(Array2d<T> sourceImage,
-			Array2d<T> kernelU, Array2d<T> kernelV, double phiRad,
+	
+	static Object cache;
+	
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> sourceImage,
+			Array2d<T,?> kernelU, Array2d<T,?> kernelV, double phiRad,
 			GeneralizedConvolutionRotated1d<T> convolutionOperation,
 			SetBorder<T> borderOperation, boolean inplace) {
 
@@ -39,13 +41,13 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 				: borderWidthV;
 		int borderHeight = borderHeightU > borderHeightV ? borderHeightU
 				: borderHeightV;
-		Array2d<T> result = null;
+		U result = null;
 
 		if (borderWidth > sourceImage.getBorderWidth()
 				|| borderHeight > sourceImage.getBorderHeight()) {
 			result = sourceImage.clone(borderWidth, borderHeight);
 		} else if(inplace) {
-			result = sourceImage;
+			result = (U) sourceImage;
 		} else {
 			result = sourceImage.clone();
 		}
@@ -67,7 +69,7 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 					px.broadcast(kernelV);
 				}
 				PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
-				Array2d<T> tmp = result.clone();
+				U tmp = result.createCompatibleArray(result.getWidth(), result.getHeight(), result.getBorderWidth(), result.getBorderHeight());
 				convolutionOperation.init(result, kernelU, phiRad, true);
 				convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
 						.getData());
@@ -82,7 +84,19 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 
 		} else { // run sequential			
 			PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
-			Array2d<T> tmp = result.clone();
+			U tmp;
+			if(cache != null && cache.getClass().equals(result.getClass()) &&
+					result.equalSignature((U)cache) && 
+					result.getBorderHeight() == ((U)cache).getBorderHeight() && 
+					result.getBorderWidth() == ((U)cache).getBorderWidth()) {
+				tmp = (U)cache;
+//				System.err.println("hit");
+			} else {
+				tmp = result.createCompatibleArray(result.getWidth(), result.getHeight(), result.getBorderWidth(), result.getBorderHeight());
+				cache = tmp;
+//				System.err.println("miss");
+			}
+			
 			convolutionOperation.init(result, kernelU, phiRad, false);
 			convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
 					.getData());
@@ -93,6 +107,7 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 					.getData());
 		}
 
+		
 		return result;
 	}
 }

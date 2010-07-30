@@ -16,6 +16,7 @@ import jorus.operations.bpo.BpoMaxDouble;
 import jorus.operations.bpo.BpoMinDouble;
 import jorus.operations.bpo.BpoMulDouble;
 import jorus.operations.bpo.BpoNegDivDouble;
+import jorus.operations.bpo.BpoPosDivDouble;
 import jorus.operations.bpo.BpoSubDouble;
 import jorus.operations.bpoval.BpoAbsDivValDouble;
 import jorus.operations.bpoval.BpoAddValDouble;
@@ -28,7 +29,10 @@ import jorus.operations.bpoval.BpoSetValDouble;
 import jorus.operations.bpoval.BpoSubValDouble;
 import jorus.operations.communication.SetBorderMirrorDouble;
 import jorus.operations.generalizedconvolution.Convolution1dDouble;
+import jorus.operations.generalizedconvolution.Convolution2dDouble;
 import jorus.operations.generalizedconvolution.ConvolutionRotated1dDouble;
+import jorus.operations.geometric.Geometric2dDouble;
+import jorus.operations.geometric.GeometricROIDouble;
 import jorus.operations.reduce.ReduceInfDouble;
 import jorus.operations.reduce.ReduceMaxDouble;
 import jorus.operations.reduce.ReduceMinDouble;
@@ -41,13 +45,16 @@ import jorus.patterns.PatBpo;
 import jorus.patterns.PatBpoVal;
 import jorus.patterns.PatGeneralizedConvolution1d;
 import jorus.patterns.PatGeneralizedConvolution1dRotated;
+import jorus.patterns.PatGeneralizedConvolution2d;
 import jorus.patterns.PatGeneralizedConvolution2dRotatedSeparated;
 import jorus.patterns.PatGeneralizedConvolution2dSeparated;
+import jorus.patterns.PatGeometric2d;
+import jorus.patterns.PatGeometricROI;
 import jorus.patterns.PatReduce;
 import jorus.patterns.PatSvo;
 import jorus.pixel.Pixel;
 
-public abstract class Array2dDoubles extends Array2d<double[]> {
+public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Array2d<double[], U> {
 	/**
 	 * 
 	 */
@@ -55,19 +62,19 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 
 	/*** Public Methods ***********************************************/
 
-	public Array2dDoubles(Array2dDoubles orig, int newBW, int newBH) {
+	public Array2dDouble(Array2dDouble<U> orig, int newBW, int newBH) {
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dDoubles(Array2dDoubles orig) {
+	public Array2dDouble(Array2dDouble<U> orig) {
 		super(orig);
 	}
 
-	public Array2dDoubles(int w, int h, int bw, int bh, int e, boolean create) {
+	public Array2dDouble(int w, int h, int bw, int bh, int e, boolean create) {
 		super(w, h, bw, bh, e, create);
 	}
 
-	public Array2dDoubles(int w, int h, int bw, int bh, int e, double[] array,
+	public Array2dDouble(int w, int h, int bw, int bh, int e, double[] array,
 			boolean copy) {
 		super(w, h, bw, bh, e, array, copy);
 	}
@@ -75,21 +82,21 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	/*** Single Pixel (Value) Operations ******************************/
 
 	@Override
-	public Array2d<double[]> setSingleValue(Pixel<double[]> p, int xidx,
+	public U setSingleValue(Pixel<double[]> p, int xidx,
 			int yidx, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
-		return PatSvo.dispatch(this, xidx, yidx, inpl, new SvoSetDouble(p
-				.getValue()));
+		return PatSvo.dispatch(this, xidx, yidx, inpl,
+				new SvoSetDouble(p.getValue()));
 	}
 
 	@Override
-	public Array2d<double[]> addSingleValue(Pixel<double[]> p, int xidx,
+	public U addSingleValue(Pixel<double[]> p, int xidx,
 			int yidx, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
-		return PatSvo.dispatch(this, xidx, yidx, inpl, new SvoAddDouble(p
-				.getValue()));
+		return PatSvo.dispatch(this, xidx, yidx, inpl,
+				new SvoAddDouble(p.getValue()));
 	}
 
 	/*** Unary Pixel Operations ***************************************/
@@ -97,7 +104,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	/** Binary Pixel Single Value Operations **************************/
 
 	@Override
-	public Array2d<double[]> setVal(Pixel<double[]> p, boolean inpl) {
+	public U setVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -105,7 +112,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> addVal(Pixel<double[]> p, boolean inpl) {
+	public U addVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -113,7 +120,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> subVal(Pixel<double[]> p, boolean inpl) {
+	public U subVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -121,7 +128,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> mulVal(Pixel<double[]> p, boolean inpl) {
+	public U mulVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -129,7 +136,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> divVal(Pixel<double[]> p, boolean inpl) {
+	public U divVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -137,7 +144,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> minVal(Pixel<double[]> p, boolean inpl) {
+	public U minVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -145,7 +152,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> maxVal(Pixel<double[]> p, boolean inpl) {
+	public U maxVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
 		return PatBpoVal
@@ -153,74 +160,81 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> negDivVal(Pixel<double[]> p, boolean inpl) {
+	public U negDivVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
-		return PatBpoVal.dispatch(this, inpl, new BpoNegDivValDouble(p
-				.getValue()));
+		return PatBpoVal.dispatch(this, inpl,
+				new BpoNegDivValDouble(p.getValue()));
 	}
 
 	@Override
-	public Array2d<double[]> absDivVal(Pixel<double[]> p, boolean inpl) {
+	public U absDivVal(Pixel<double[]> p, boolean inpl) {
 		if (!equalExtent(p))
 			return null;
-		return PatBpoVal.dispatch(this, inpl, new BpoAbsDivValDouble(p
-				.getValue()));
+		return PatBpoVal.dispatch(this, inpl,
+				new BpoAbsDivValDouble(p.getValue()));
 	}
 
 	/*** Binary Pixel Operations **************************************/
 
 	@Override
-	public Array2d<double[]> add(Array2d<double[]> a, boolean inpl) {
+	public U add(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoAddDouble());
 	}
 
 	@Override
-	public Array2d<double[]> sub(Array2d<double[]> a, boolean inpl) {
+	public U sub(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoSubDouble());
 	}
 
 	@Override
-	public Array2d<double[]> mul(Array2d<double[]> a, boolean inpl) {
+	public U mul(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoMulDouble());
 	}
 
 	@Override
-	public Array2d<double[]> div(Array2d<double[]> a, boolean inpl) {
+	public U div(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoDivDouble());
 	}
 
 	@Override
-	public Array2d<double[]> min(Array2d<double[]> a, boolean inpl) {
+	public U min(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoMinDouble());
 	}
 
 	@Override
-	public Array2d<double[]> max(Array2d<double[]> a, boolean inpl) {
+	public U max(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoMaxDouble());
 	}
 
 	@Override
-	public Array2d<double[]> negDiv(Array2d<double[]> a, boolean inpl) {
+	public U negDiv(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoNegDivDouble());
 	}
 
 	@Override
-	public Array2d<double[]> absDiv(Array2d<double[]> a, boolean inpl) {
+	public U posDiv(Array2d<double[], ?> a, boolean inpl) {
+		if (!equalSignature(a))
+			return null;
+		return PatBpo.dispatch(this, a, inpl, new BpoPosDivDouble());
+	}
+
+	@Override
+	public U absDiv(Array2d<double[], ?> a, boolean inpl) {
 		if (!equalSignature(a))
 			return null;
 		return PatBpo.dispatch(this, a, inpl, new BpoAbsDivDouble());
@@ -234,13 +248,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixInf()
 	 */
 	@Override
-	public Array2d<double[]> pixInf() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixInf() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceInfDouble());
 	}
 
@@ -250,13 +264,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixMax()
 	 */
 	@Override
-	public Array2d<double[]> pixMax() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixMax() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceMaxDouble());
 	}
 
@@ -266,13 +280,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixMin()
 	 */
 	@Override
-	public Array2d<double[]> pixMin() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixMin() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceMinDouble());
 	}
 
@@ -282,13 +296,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixProduct()
 	 */
 	@Override
-	public Array2d<double[]> pixProduct() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixProduct() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceProductDouble());
 	}
 
@@ -298,13 +312,13 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixSum()
 	 */
 	@Override
-	public Array2d<double[]> pixSum() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixSum() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceSumDouble());
 	}
 
@@ -314,20 +328,20 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	 * @see jorus.array.Array2d#pixSup()
 	 */
 	@Override
-	public Array2d<double[]> pixSup() {
-		Array2dDoubles result;
-		if (this instanceof Array2dScalarDouble) {
-			result = new Array2dScalarDouble(1, 1, 0, 0, false);
-		} else {
-			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
-		}
+	public U pixSup() {
+		U result = createCompatibleArray(1, 1, 0, 0);
+//		if (this instanceof Array2dScalarDouble) {
+//			result = new Array2dScalarDouble(1, 1, 0, 0, false);
+//		} else {
+//			result = new Array2dVecDouble(1, 1, 0, 0, getExtent(), false);
+//		}
 		return PatReduce.dispatch(result, this, new ReduceSupDouble());
 	}
 
 	/*** Convolution Operations ***************************************/
 
 	@Override
-	public Array2d<double[]> convGauss2d(double sigmaX, int orderDerivX,
+	public U convGauss2d(double sigmaX, int orderDerivX,
 			double truncationX, double sigmaY, int orderDerivY,
 			double truncationY, boolean inplace) {
 		if (truncationX < 1) {
@@ -337,10 +351,10 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 			truncationY = 3;
 		}
 		// TODO what about the accuracy??
-		Array2dScalarDouble gx = Gaussian1d.create(sigmaX, orderDerivX, 0.995,
-				(int) (truncationX * sigmaX * 2 + 1), getWidth());
-		Array2dScalarDouble gy = Gaussian1d.create(sigmaY, orderDerivY, 0.995,
-				(int) (truncationY * sigmaY * 2 + 1), getHeight());
+		Array2dScalarDouble gx = Gaussian1d.createDouble(sigmaX, orderDerivX,
+				0.995, (int) (truncationX * sigmaX * 2 + 1), getWidth());
+		Array2dScalarDouble gy = Gaussian1d.createDouble(sigmaY, orderDerivY,
+				0.995, (int) (truncationY * sigmaY * 2 + 1), getHeight());
 
 		return PatGeneralizedConvolution2dSeparated
 				.dispatch(this, gx, gy, new Convolution1dDouble(),
@@ -348,7 +362,17 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public final Array2d<double[]> convGaussAnisotropic2d(double sigmaU,
+	public U convGauss1x2d(double sigmaT, double sigmaR,
+			double phiDegrees, int derivativeT, double n) {
+		Array2dScalarDouble g = Gaussian2d.createGaussianKernel2dDouble(sigmaT,
+				sigmaR, phiDegrees, derivativeT, n);
+
+		return PatGeneralizedConvolution2d.dispatch(this, g,
+				new Convolution2dDouble(), new SetBorderMirrorDouble());
+	}
+
+	@Override
+	public final U convGaussAnisotropic2d(double sigmaU,
 			int orderDerivU, double truncationU, double sigmaV,
 			int orderDerivV, double truncationV, double phiRad, boolean inplace) {
 		if (truncationU < 1) {
@@ -358,18 +382,18 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 			truncationV = 3;
 		}
 		// TODO what about the accuracy??
-		Array2dScalarDouble gx = Gaussian1d.create(sigmaU, orderDerivU, 0.995,
-				(int) (truncationU * sigmaU * 2 + 1), getWidth());
-		Array2dScalarDouble gy = Gaussian1d.create(sigmaV, orderDerivV, 0.995,
-				(int) (truncationV * sigmaV * 2 + 1), getHeight());
+		Array2dScalarDouble gx = Gaussian1d.createDouble(sigmaU, orderDerivU,
+				0.995, (int) (truncationU * sigmaU * 2 + 1), getWidth());
+		Array2dScalarDouble gy = Gaussian1d.createDouble(sigmaV, orderDerivV,
+				0.995, (int) (truncationV * sigmaV * 2 + 1), getHeight());
 		return PatGeneralizedConvolution2dRotatedSeparated.dispatch(this, gx,
 				gy, phiRad, new ConvolutionRotated1dDouble(),
 				new SetBorderMirrorDouble(), inplace);
 	}
 
 	@Override
-	public Array2d<double[]> convKernelSeparated2d(Array2d<double[]> kernelX,
-			Array2d<double[]> kernelY, boolean inplace) {
+	public U convKernelSeparated2d(Array2d<double[], ?> kernelX,
+			Array2d<double[], ?> kernelY, boolean inplace) {
 		return PatGeneralizedConvolution2dSeparated.dispatch(this, kernelX,
 				kernelY, new Convolution1dDouble(),
 				new SetBorderMirrorDouble(), inplace);
@@ -377,14 +401,14 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> convolution(Array2d<double[]> kernel) {
+	public U convolution(Array2d<double[], ?> kernel) {
 		// FIXME implement
 		throw new UnsupportedOperationException();
 
 	}
 
 	@Override
-	public Array2d<double[]> convolution1d(Array2d<double[]> kernel,
+	public U convolution1d(Array2d<double[], ?> kernel,
 			int dimension) {
 		return PatGeneralizedConvolution1d.dispatch(this, kernel,
 				new Convolution1dDouble(), dimension,
@@ -393,7 +417,7 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	}
 
 	@Override
-	public Array2d<double[]> convolutionRotated1d(Array2d<double[]> kernel,
+	public U convolutionRotated1d(Array2d<double[], ?> kernel,
 			double phirad) {
 		return PatGeneralizedConvolution1dRotated.dispatch(this, kernel,
 				phirad, new ConvolutionRotated1dDouble(),
@@ -404,6 +428,61 @@ public abstract class Array2dDoubles extends Array2d<double[]> {
 	// protected Class<?> getDataType() {
 	// return double.class;
 	// }
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see jorus.array.Array2d#geometricOp2d(Matrix, boolean, boolean,
+	 * boolean, jorus.pixel.Pixel)
+	 */
+	@Override
+	protected U geometricOp2d(Matrix transformationMatrix,
+			boolean forwardMatrix, boolean linearInterpolation,
+			boolean adjustSize, Pixel<double[]> background) {
+		double[] translationVector;
+
+		Matrix forwardsTransformationMatrix = transformationMatrix.clone();
+		Matrix backwardsTransformationMatrix = transformationMatrix.clone();
+		try {
+			if (forwardMatrix) {
+				backwardsTransformationMatrix.inverse();
+			} else {
+				forwardsTransformationMatrix.inverse();
+			}
+		} catch (Exception e) {
+			// TODO Will (probably?) never happen
+			throw new Error(e);
+		}
+
+		/*** Create result image and translation vector ***/
+		U destination;
+		if (adjustSize) {
+			double[][] specs = calculateDimensionsandTranslationVector(forwardsTransformationMatrix);
+			destination = createCompatibleArray((int) specs[1][0],
+					(int) specs[1][1], 0, 0);
+			translationVector = specs[0];
+		} else {
+			destination = clone();
+			translationVector = new double[3];
+		}
+
+		Geometric2dDouble geometricOperation = new Geometric2dDouble(
+				backwardsTransformationMatrix, translationVector,
+				background.getValue(), linearInterpolation);
+		return PatGeometric2d.dispatch(destination, this, geometricOperation);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see jorus.array.Array2d#geometricROI(int, int, jorus.pixel.Pixel, int, int)
+	 */
+	@Override
+	public final U geometricOpROI(int newImWidth, int newImHeight,
+			Pixel<double[]> background, int beginX, int beginY) {
+		GeometricROIDouble geometricOperation = new GeometricROIDouble(background);
+		return PatGeometricROI.dispatch(this, newImWidth, newImHeight, beginX, beginY, geometricOperation);
+	}
 
 	private static long createCounter = 0; // TODO debug counter
 

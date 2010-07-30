@@ -14,9 +14,9 @@ import jorus.operations.bpoval.BpoVal;
 import jorus.parallel.PxSystem;
 
 public class PatBpoVal {
-	public static <T> Array2d<T> dispatch(Array2d<T> s1, boolean inplace,
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> s1, boolean inplace,
 			BpoVal<T> bpoVal) {
-		Array2d<T> dst;
+		U dst;
 
 		if (PxSystem.initialized()) { // run parallel
 
@@ -56,9 +56,11 @@ public class PatBpoVal {
 				}
 			}
 
-			dst = s1;
-			if (!inplace)
+			if (inplace) {
+				dst = (U) s1;
+			} else {
 				dst = s1.clone();
+			}
 
 			bpoVal.init(s1, true);
 			bpoVal.doIt(dst.getData());
@@ -71,9 +73,11 @@ public class PatBpoVal {
 				s1.setData(s1.getWidth(), s1.getHeight(), s1
 						.createDataArray(length), Array2d.GLOBAL_VALID);
 			}
-			dst = s1;
-			if (!inplace)
+			if (inplace) {
+				dst = (U) s1;
+			} else {
 				dst = s1.clone();
+			}
 
 			bpoVal.init(s1, false);
 			bpoVal.doIt(dst.getData());

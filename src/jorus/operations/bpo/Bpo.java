@@ -19,7 +19,7 @@ public abstract class Bpo<T> {
 	protected int stride1 = 0;
 	protected int stride2 = 0;
 
-	public void init(Array2d<T> s1, Array2d<T> s2, boolean parallel) {
+	public void init(Array2d<T,?> s1, Array2d<T,?> s2, boolean parallel) {
 		int w1 = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1 = s1.getExtent();
 		int w2 = parallel ? s2.getPartialWidth() : s2.getWidth();
@@ -35,5 +35,12 @@ public abstract class Bpo<T> {
 		stride2 = bw2 * e2 * 2;
 	}
 
-	public abstract void doIt(T dst, T src);
+	public final void doIt(T dst, T src) {
+		for (int j = 0; j < height; j++) {
+			doRow(dst, src, j);
+		}
+	}
+	
+	
+	public abstract void doRow(T dst, T src, int row);
 }

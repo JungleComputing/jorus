@@ -14,9 +14,9 @@ import jorus.operations.svo.Svo;
 import jorus.parallel.PxSystem;
 
 public class PatSvo {
-	public static <T> Array2d<T> dispatch(Array2d<T> s1, int x, int y,
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> s1, int x, int y,
 			boolean inplace, Svo<T> svo) {
-		Array2d<T> dst = s1;
+		U dst = (U) s1;
 
 		if (PxSystem.initialized()) { // run parallel
 

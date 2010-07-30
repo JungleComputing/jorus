@@ -14,16 +14,14 @@ package jorus.operations.upo;
 import jorus.array.Array2d;
 
 
-public abstract class Upo<T>
-{
+public abstract class Upo<T> {
 	protected int	w      = 0;
 	protected int	h      = 0;
 	protected int	off    = 0;
 	protected int	stride = 0;
 
 
-	public void init(Array2d<T> s1, boolean parallel)
-	{
+	public void init(Array2d<T,?> s1, boolean parallel) {
 		int w1  = parallel ? s1.getPartialWidth() : s1.getWidth();
 		int e1  = s1.getExtent();
 		int bw1 = s1.getBorderWidth();

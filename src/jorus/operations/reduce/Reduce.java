@@ -11,7 +11,7 @@ public abstract class Reduce<T> {
 	protected int extent = 0;
 	protected int rowWidth = 0;
 
-	public void init(Array2d<T> s1, boolean parallel) {
+	public void init(Array2d<T,?> s1, boolean parallel) {
 		int bw1 = s1.getBorderWidth();
 
 		width = parallel ? s1.getPartialWidth() : s1.getWidth();

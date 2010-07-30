@@ -15,8 +15,8 @@ import jorus.parallel.PxSystem;
 
 public class PatReduce {
 
-	public static <T> Array2d<T> dispatch(Array2d<T> destination,
-			Array2d<T> source, Reduce<T> reduceOperation) {
+	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> destination,
+			Array2d<T,U> source, Reduce<T> reduceOperation) {
 		// FIXME check data formats of destination structure. Those are not
 		// consistent for sequential and parallel algorithm
 
@@ -72,6 +72,6 @@ public class PatReduce {
 			reduceOperation.doIt(destination.getData(), source.getData());
 		}
 
-		return destination;
+		return (U) destination;
 	}
 }

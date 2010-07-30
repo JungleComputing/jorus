@@ -10,6 +10,7 @@
 package jorus.operations.bpoval;
 
 
+
 public class BpoMulValDouble extends BpoVal<double[]> {
 	protected double[] value;
 
@@ -28,18 +29,25 @@ public class BpoMulValDouble extends BpoVal<double[]> {
 	
 	
 	
-	@Override
-	public void doIt(double[] dst) {
-		int index = offset;
-		for (int j = 0; j < height; j++) {
-			doRow(dst, index);
-			index += rowWidth;
-		}
-	}
+//	@Override
+//	public void doIt(double[] dst) {
+//		int index = offset;
+//		for (int j = 0; j < height; j++) {
+//			doRow(dst, index);
+//			index += rowWidth;
+//		}
+//	}
+//	
+//	private void doRow(double[] dst, final int index) {
+//		for (int i = 0; i < rowWidth; i++) {
+//			dst[index + i] *= value[i % value.length];
+//		}
+//	}
 	
-	private void doRow(double[] dst, final int index) {
-		for (int i = 0; i < rowWidth; i++) {
-			dst[index + i] *= value[i % value.length];
+	@Override
+	public void doRow(double[] dst, int row) {
+		for (int i = 0; i < width; i++) {
+			dst[offset + row * (width + stride) + i] *= value[i % value.length];
 		}
 	}
 }
