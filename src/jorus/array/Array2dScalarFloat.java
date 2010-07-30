@@ -26,8 +26,8 @@ public class Array2dScalarFloat extends Array2dFloat<Array2dScalarFloat> {
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dScalarFloat(Array2dScalarFloat orig) {
-		super(orig);
+	public Array2dScalarFloat(Array2dScalarFloat orig, boolean copyData) {
+		super(orig, copyData);
 	}
 
 	public Array2dScalarFloat(int w, int h, int bw, int bh, boolean create) {
@@ -120,8 +120,13 @@ public class Array2dScalarFloat extends Array2dFloat<Array2dScalarFloat> {
 	}*/
 
 	@Override
+	public Array2dScalarFloat shallowClone() {
+		return new Array2dScalarFloat(this, false);
+	}
+	
+	@Override
 	public Array2dScalarFloat clone() {
-		return new Array2dScalarFloat(this);
+		return new Array2dScalarFloat(this, true);
 	}
 
 	@Override

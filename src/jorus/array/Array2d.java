@@ -121,7 +121,7 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 
 	// Copy constructor which copies an existing array, dimension of the
 	// borders, state, etc. is unchanged. Partial data is also copied -- J.
-	protected Array2d(Array2d<T, U> original) {
+	protected Array2d(Array2d<T, U> original, boolean copyData) {
 		setDimensions(original.width, original.height, original.borderWidth,
 				original.borderHeight, original.extent);
 
@@ -130,8 +130,10 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 		partialHeight = original.partialHeight;
 		requiredReduceOp = original.requiredReduceOp;
 
-		if (original.data != null) {
+		if (copyData && original.data != null) {
 			data = original.copyArray();
+		} else {
+			data = createDataArray(original.getDataLength());
 		}
 	}
 
@@ -265,6 +267,8 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public T getData() {
 		return data;
 	}
+	
+	protected abstract int getDataLength();
 
 	// public T getDataReadOnly() {
 	// if (data == null) {
@@ -504,6 +508,8 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public abstract U clone();
 
 	public abstract U clone(int newBorderWidth, int newBorderHeight);
+	
+	public abstract U shallowClone();
 
 	public abstract U createCompatibleArray(int width, int height,
 			int borderWidth, int borderHeight);

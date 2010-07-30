@@ -41,15 +41,15 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 				: borderWidthV;
 		int borderHeight = borderHeightU > borderHeightV ? borderHeightU
 				: borderHeightV;
-		U result = null;
+		U dst = null;
 
 		if (borderWidth > sourceImage.getBorderWidth()
 				|| borderHeight > sourceImage.getBorderHeight()) {
-			result = sourceImage.clone(borderWidth, borderHeight);
+			dst = sourceImage.clone(borderWidth, borderHeight);
 		} else if(inplace) {
-			result = (U) sourceImage;
+			dst = (U) sourceImage;
 		} else {
-			result = sourceImage.clone();
+			dst = sourceImage.clone();
 		}
 
 		if (PxSystem.initialized()) { // run parallel
@@ -57,10 +57,10 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 			final boolean root = px.isRoot();
 
 			try {
-				if (result.getState() != Array2d.LOCAL_PARTIAL) {
+				if (dst.getState() != Array2d.LOCAL_PARTIAL) {
 					if (root)
 						logger.debug("GENCONV SCATTER 1...");
-					px.scatter(result);
+					px.scatter(dst);
 				}
 				if (kernelU.getState() != Array2d.LOCAL_FULL) {
 					px.broadcast(kernelU);
@@ -68,46 +68,46 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 				if (kernelV.getState() != Array2d.LOCAL_FULL) {
 					px.broadcast(kernelV);
 				}
-				PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
-				U tmp = result.createCompatibleArray(result.getWidth(), result.getHeight(), result.getBorderWidth(), result.getBorderHeight());
-				convolutionOperation.init(result, kernelU, phiRad, true);
-				convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
+				PatSetBorder.dispatch(dst, borderWidthU, borderHeightU, borderOperation);
+				U tmp = dst.shallowClone();
+				convolutionOperation.init(dst, kernelU, phiRad, true);
+				convolutionOperation.doIt(tmp.getData(), dst.getData(), kernelU
 						.getData());
 
 				PatSetBorder.dispatch(tmp, borderWidthV, borderHeightV, borderOperation);
 				convolutionOperation.init(tmp, kernelV, phiRad + 0.5 * Math.PI, true); //FIXME + or - 0.5 * PI ????
-				convolutionOperation.doIt(result.getData(), tmp.getData(), kernelV
+				convolutionOperation.doIt(dst.getData(), tmp.getData(), kernelV
 						.getData());
 			} catch (Exception e) {
 				//
 			}
 
 		} else { // run sequential			
-			PatSetBorder.dispatch(result, borderWidthU, borderHeightU, borderOperation);
+			PatSetBorder.dispatch(dst, borderWidthU, borderHeightU, borderOperation);
 			U tmp;
-			if(cache != null && cache.getClass().equals(result.getClass()) &&
-					result.equalSignature((U)cache) && 
-					result.getBorderHeight() == ((U)cache).getBorderHeight() && 
-					result.getBorderWidth() == ((U)cache).getBorderWidth()) {
+			if(cache != null && cache.getClass().equals(dst.getClass()) &&
+					dst.equalSignature((U)cache) && 
+					dst.getBorderHeight() == ((U)cache).getBorderHeight() && 
+					dst.getBorderWidth() == ((U)cache).getBorderWidth()) {
 				tmp = (U)cache;
 //				System.err.println("hit");
 			} else {
-				tmp = result.createCompatibleArray(result.getWidth(), result.getHeight(), result.getBorderWidth(), result.getBorderHeight());
+				tmp = dst.shallowClone();
 				cache = tmp;
 //				System.err.println("miss");
 			}
 			
-			convolutionOperation.init(result, kernelU, phiRad, false);
-			convolutionOperation.doIt(tmp.getData(), result.getData(), kernelU
+			convolutionOperation.init(dst, kernelU, phiRad, false);
+			convolutionOperation.doIt(tmp.getData(), dst.getData(), kernelU
 					.getData());
 
 			PatSetBorder.dispatch(tmp, borderWidthV, borderHeightV, borderOperation);
 			convolutionOperation.init(tmp, kernelV, phiRad + 0.5 * Math.PI, false); //FIXME + or - 0.5 * PI ????
-			convolutionOperation.doIt(result.getData(), tmp.getData(), kernelV
+			convolutionOperation.doIt(dst.getData(), tmp.getData(), kernelV
 					.getData());
 		}
 
 		
-		return result;
+		return dst;
 	}
 }

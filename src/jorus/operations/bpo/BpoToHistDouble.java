@@ -16,19 +16,16 @@ public class BpoToHistDouble extends BpoToHist<double[]> {
 
 		for (int j = 0; j < h; j++) {
 
-			int s1Ptr = off1 + j * (w + stride1);
-			int s2Ptr = off2 + j * (w + stride2);
+			final int s1Ptr = off1 + j * (w + stride1);
+			final int s2Ptr = off2 + j * (w + stride2);
 
 			for (int i = 0; i < w; i++) {
 
-				final int index = (int) (nBins * (s1[s1Ptr] - minVal) / range);
+				final int index = (int) (nBins * (s1[s1Ptr + i] - minVal) / range);
 
 				if (index >= 0 && index < nBins) {
-					dst[index] += s2[s2Ptr];
+					dst[index] += s2[s2Ptr + i];
 				}
-
-				s1Ptr++;
-				s2Ptr++;
 			}
 		}
 	}

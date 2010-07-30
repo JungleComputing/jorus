@@ -17,10 +17,13 @@ public final class Convolution2dFloat extends GeneralizedConvolution2d<float[]> 
 	
 	@Override
 	protected void doItSS(float[] destination, float[] source, float[] kernel) {
-		int destinationIndex = 0;
-		int sourceIndex = 0;
 		for (int y = 0; y < height; y++) {
-			doRowSS(destination, destinationIndex + y * width, source, sourceIndex + y * rowSize, kernel);
+			doRowSS(destination, y * width, source, y * rowSize, kernel);
+//			final int destinationIndex = y * width;
+//			final int sourceIndex = y * rowSize;
+//			for (int x = 0; x < width; x++) {
+//				doKernelSS(destination,destinationIndex + x, source, sourceIndex + x, kernel);
+//			}
 		}
 	}
 	
@@ -29,6 +32,24 @@ public final class Convolution2dFloat extends GeneralizedConvolution2d<float[]> 
 			doKernelSS(destination, destinationIndex + x, source, sourceIndex + x, kernel);
 		}
 	}
+		
+	private void doKernelSS(float[] destination, int destinationIndex, float[] source, int sourceIndex, float[] kernel) {
+	float sum = 0;
+	int kernelIndex = 0;
+	for (int j = 0; j < kernelHeight; j++) {
+		for (int i = 0; i < kernelWidth; i++) {
+			sum += source[sourceIndex] * kernel[kernelIndex];
+			sourceIndex++;
+			kernelIndex++;
+		}
+		sourceIndex -= kernelWidth;
+		sourceIndex += rowSize;
+	}
+//sum /= kernel.length;
+	destination[destinationIndex] = sum;
+}
+	
+	
 	
 //	private void doKernelSS(float[] destination, int destinationIndex, float[] source, int sourceIndex, float[] kernel) {
 //		destination[destinationIndex] = 0;
@@ -59,20 +80,21 @@ public final class Convolution2dFloat extends GeneralizedConvolution2d<float[]> 
 //		}
 //	}
 	
-	private void doKernelSS(float[] destination, int destinationIndex, float[] source, int sourceIndex, float[] kernel) {
-		float sum = 0;
-		int kernelIndex = 0;
-		for (int j = 0; j < kernelHeight; j++) {
-			for (int i = 0; i < kernelWidth; i++) {
-				sum += source[sourceIndex + i] * kernel[kernelIndex];
-				kernelIndex++;
-			}
-			sourceIndex += rowSize;
-		}
-		
-//		sum /= kernel.length;
-		destination[destinationIndex] = sum;
-	}
+//	private void doKernelSS(float[] destination, int destinationIndex, float[] source, int sourceIndex, float[] kernel) {
+//		float sum = 0;
+//		int kernelIndex = 0;
+//		for (int j = 0; j < kernelHeight; j++) {
+//			for (int i = 0; i < kernelWidth; i++) {
+//				sum += source[sourceIndex + i] * kernel[kernelIndex];
+//				kernelIndex++;
+//			}
+//			sourceIndex += rowSize;
+//		}
+//		
+//		
+////		sum /= kernel.length;
+//		destination[destinationIndex] = sum;
+//	}
 	
 	
 //	private void doKernelSS(float[] destination, int destinationIndex, float[] source, int sourceIndex, float[] kernel) {

@@ -18,9 +18,9 @@ public class BpoSetValDouble extends BpoVal<double[]> {
 	}
 
 	@Override
-	public void doRow(double[] dst, int row) {
+	public void doRow(double[] dst, int index) {
 		for (int i = 0; i < width; i++) {
-			dst[offset + row * (width + stride) + i] = value[i % value.length];
+			dst[index + i] = value[i % value.length];
 		}
 	}
 }

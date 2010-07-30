@@ -24,8 +24,8 @@ public class Array2dVecDouble extends Array2dDouble<Array2dVecDouble> {
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dVecDouble(Array2dVecDouble orig) {
-		super(orig);
+	public Array2dVecDouble(Array2dVecDouble orig, boolean copyData) {
+		super(orig, copyData);
 	}
 
 	public Array2dVecDouble(int width, int height, int borderWidth,
@@ -90,10 +90,15 @@ public class Array2dVecDouble extends Array2dDouble<Array2dVecDouble> {
 		}
 		return;
 	}*/
+	
+	@Override
+	public Array2dVecDouble shallowClone() {
+		return new Array2dVecDouble(this, false);
+	}
 
 	@Override
 	public Array2dVecDouble clone() {
-		return new Array2dVecDouble(this);
+		return new Array2dVecDouble(this, true);
 	}
 
 	@Override

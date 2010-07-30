@@ -26,8 +26,8 @@ public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dScalarDouble(Array2dScalarDouble orig) {
-		super(orig);
+	public Array2dScalarDouble(Array2dScalarDouble orig, boolean copyData) {
+		super(orig, copyData);
 	}
 
 	public Array2dScalarDouble(int w, int h, int bw, int bh, boolean create) {
@@ -118,10 +118,15 @@ public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 		}
 		return;
 	}*/
+	
+	@Override
+	public Array2dScalarDouble shallowClone() {
+		return new Array2dScalarDouble(this, false);
+	}
 
 	@Override
 	public Array2dScalarDouble clone() {
-		return new Array2dScalarDouble(this);
+		return new Array2dScalarDouble(this, true);
 	}
 
 	@Override

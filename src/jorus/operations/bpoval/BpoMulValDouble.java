@@ -17,37 +17,11 @@ public class BpoMulValDouble extends BpoVal<double[]> {
 	public BpoMulValDouble(double[] p) {
 		value = p;
 	}
-
-//	public void doIt(double[] dst) {
-//		for (int j = 0; j < height; j++) {
-//			for (int i = 0; i < width; i++) {
-//				dst[offset + j * (width + stride) + i] *= value[i
-//						% value.length];
-//			}
-//		}
-//	}
-	
-	
-	
-//	@Override
-//	public void doIt(double[] dst) {
-//		int index = offset;
-//		for (int j = 0; j < height; j++) {
-//			doRow(dst, index);
-//			index += rowWidth;
-//		}
-//	}
-//	
-//	private void doRow(double[] dst, final int index) {
-//		for (int i = 0; i < rowWidth; i++) {
-//			dst[index + i] *= value[i % value.length];
-//		}
-//	}
 	
 	@Override
-	public void doRow(double[] dst, int row) {
+	public void doRow(double[] dst, int index) {
 		for (int i = 0; i < width; i++) {
-			dst[offset + row * (width + stride) + i] *= value[i % value.length];
+			dst[index + i] *= value[i % value.length];
 		}
 	}
 }

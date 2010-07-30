@@ -156,9 +156,9 @@ public class JorusRot {
 								.convGauss2d(sx, 2, 3, sy, 0, 3, false);
 						Array2dScalarDouble filtIm2 = (Array2dScalarDouble) rotatedImg
 								.convGauss2d(sx, 0, 3, sy, 0, 3, false);
-//						filtIm1 = (Array2dScalarDouble) filtIm1.posDiv(filtIm2,
-//								true);
-						filtIm1 = (Array2dScalarDouble) filtIm1.absDiv(filtIm2, true);
+						filtIm1 = (Array2dScalarDouble) filtIm1.posDiv(filtIm2,
+								true);
+//						filtIm1 = (Array2dScalarDouble) filtIm1.absDiv(filtIm2, true);
 //						filtIm1 = (Array2dScalarDouble) filtIm1.negDiv(filtIm2, true);
 //						filtIm1 = (Array2dScalarDouble) filtIm1;
 

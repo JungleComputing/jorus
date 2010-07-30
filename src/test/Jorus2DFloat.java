@@ -126,16 +126,17 @@ public class Jorus2DFloat {
 						filtIm2 = (Array2dScalarFloat) source.convGauss1x2d(sx, sy, -theta, 0, 3);
 						
 //						
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-//								.posDiv(filtIm2, true);
+						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
 //						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
 //						.div(filtIm2, true);
-						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-						.absDiv(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1;
-						contrastIm = (Array2dScalarFloat) contrastIm
-								.mulVal(new PixelFloat(
-										new float[] { sx * sy }), true);
+//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
+//						.posDiv(filtIm2, true);
+
+//						Array2dScalarFloat contrastIm = filtIm1;
+						
+//						contrastIm = (Array2dScalarFloat) contrastIm
+//								.mulVal(new PixelFloat(
+//										new float[] { sx * sy }), true);
 
 						resultImage = (Array2dScalarFloat) resultImage.max(
 								contrastIm, true);
@@ -306,7 +307,7 @@ public class Jorus2DFloat {
 		try {
 			server = new Jorus2DFloat(poolName, poolSize, fileName);
 			// Install a shutdown hook that terminates Ibis.
-			// Runtime.getRuntime().addShutdownHook(new ShutDown(server));
+			 Runtime.getRuntime().addShutdownHook(new ShutDown(server));
 
 			server.run();
 		} catch (Throwable e) {

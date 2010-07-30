@@ -66,8 +66,8 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dDouble(Array2dDouble<U> orig) {
-		super(orig);
+	public Array2dDouble(Array2dDouble<U> orig, boolean copyData) {
+		super(orig, copyData);
 	}
 
 	public Array2dDouble(int w, int h, int bw, int bh, int e, boolean create) {
@@ -508,6 +508,11 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 		return new double[size];
 	}
 
+	@Override
+	protected int getDataLength() {
+		return getData().length;
+	}
+	
 	@Override
 	protected double[] copyArray() {
 		if (getData() == null) {

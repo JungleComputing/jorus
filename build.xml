@@ -8,9 +8,9 @@
 	<property name="distdir" value="./lib" />
 	
 	<property name="external" location="external" />
-	<!--<property name="ipl" value="${external}/ipl"/> -->
-	<property environment="env"/>
-	<property name="ipl" value="/${env.IPL_HOME}/lib"/>
+	<property name="ipl" value="${external}/ipl"/>
+	<!--<property environment="env"/> -->
+	<!--<property name="ipl" value="/${env.IPL_HOME}/lib"/>-->
 	
 	<path id="default.classpath">
 		<fileset dir="${ipl}">

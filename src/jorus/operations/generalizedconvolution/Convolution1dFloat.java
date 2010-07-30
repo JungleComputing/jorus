@@ -38,19 +38,21 @@ public class Convolution1dFloat extends GeneralizedConvolution1d<float[]> {
 
 	private void doRowSSH(float[] dst, int dstIndex, float[] src, int srcIndex, float[] ker) {
 		for (int x = 0; x < width; x++) {
-			dst[dstIndex + x] = 0; // neutral element of addition
+			float sum = 0; // neutral element of addition
 			for (int k = 0; k < kernelWidth; k++) {
-				dst[dstIndex + x] += src[srcIndex + x + k] * ker[k];				
+				sum += src[srcIndex + x + k] * ker[k];				
 			}
+			dst[dstIndex + x] = sum;
 		}
 	}
 	
 	private void doColSSH(float[] dst, int dstIndex, float[] src, int srcIndex, float[] ker) {
 		for (int x = 0; x < width; x++) {
-			dst[dstIndex + x] = 0; // neutral element of addition
+			float sum = 0; // neutral element of addition	 
 			for (int k = 0; k < kernelWidth; k++) {
-				dst[dstIndex + x] += src[srcIndex + x + k * rowSize] * ker[k];	
+				sum += src[srcIndex + x + k * rowSize] * ker[k];	
 			}
+			dst[dstIndex + x] = sum;
 		}
 	}
 	

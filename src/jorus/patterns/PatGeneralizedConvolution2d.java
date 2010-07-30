@@ -24,9 +24,10 @@ public class PatGeneralizedConvolution2d {
 		if (requiredBorderWidth > sourceImage.getBorderWidth() || requiredBorderHeight > sourceImage.getBorderHeight()) {
 			sourceImage = sourceImage.clone(requiredBorderWidth, requiredBorderHeight);
 		}
-		U resultImage = sourceImage.createCompatibleArray(sourceImage.getWidth(), sourceImage.getHeight(), 0, 0);
-		if (PxSystem.initialized()) {
+		U resultImage;
 
+		if (PxSystem.initialized()) {
+			
 			final PxSystem px = PxSystem.get();
 
 			// run parallel
@@ -34,6 +35,7 @@ public class PatGeneralizedConvolution2d {
 				if (sourceImage.getState() != Array2d.LOCAL_PARTIAL) {
 					px.scatter(sourceImage);
 				}
+				resultImage = sourceImage.shallowClone();
 				if (kernel.getState() != Array2d.LOCAL_FULL) {
 					px.broadcast(kernel);
 				}
@@ -46,8 +48,10 @@ public class PatGeneralizedConvolution2d {
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
+				resultImage = null;
 			}
 		} else { // run sequential
+			resultImage = sourceImage.createCompatibleArray(sourceImage.getWidth(), sourceImage.getHeight(), 0, 0);
 			PatSetBorder.dispatch(sourceImage, requiredBorderWidth, requiredBorderHeight,
 					borderOperation);
 			convolutionOperation.init(sourceImage, kernel, false);

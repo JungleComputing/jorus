@@ -33,26 +33,26 @@ public class BpoMaxValDouble extends BpoVal<double[]> {
 	}
 
 	@Override
-	public void doRow(double[] dst, int row) {
+	public void doRow(double[] dst, int index) {
 		if (extent == 1) {
-			doItSimple(dst, row); // TODO Test whether this is really faster
+			doItSimple(dst, index); // TODO Test whether this is really faster
 			return;
 		}
 
 		for (int i = 0; i < pixelWidth; i += extent) {
-			if (valueL1 > normL1(dst, offset + row * (width + stride) + i,
+			if (valueL1 > normL1(dst, index + i,
 					extent)) {
 				for (int k = 0; k < extent; k++) {
-					dst[offset + row * (width + stride) + i + k] = value[k];
+					dst[index + i + k] = value[k];
 				}
 			}
 		}
 	}
 
-	public void doItSimple(double[] dst, int row) {
+	public void doItSimple(double[] dst, int index) {
 		for (int i = 0; i < width; i++) {
-			if (value[0] > dst[offset + row * (width + stride) + i]) {
-				dst[offset + row * (width + stride) + i] = value[0];
+			if (value[0] > dst[index + i]) {
+				dst[index + i] = value[0];
 			}
 		}
 	}

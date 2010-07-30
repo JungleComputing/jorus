@@ -123,10 +123,6 @@ public class JorusUVFloat {
 			for (sy = MIN_SY; sy < MAX_SY; sy += STEP_SY) {
 				for (sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
-						// filtIm1 = source.gaussDerivativeRot(thetaRad, sx, sy,
-						// 2, 0); // FIXME no rotation!
-						// filtIm2 = source.gaussDerivativeRot(thetaRad, sx, sy,
-						// 0, 0); // FIXME no rotation!
 						filtIm1 = (Array2dScalarFloat) source
 								.convGaussAnisotropic2d(sx, 2, 3, sy, 0, 3,
 										thetaRad, false);
@@ -196,8 +192,8 @@ public class JorusUVFloat {
 
 			Array2dScalarFloat viewImage = result;// .clone(0,0);
 			try {
-//				viewImage(viewImage.getData(), viewImage.getWidth(),
-//						viewImage.getHeight(), name);
+				viewImage(viewImage.getData(), viewImage.getWidth(),
+						viewImage.getHeight(), name);
 			} catch (Exception e) {
 
 //				e.printStackTrace();
@@ -313,7 +309,7 @@ public class JorusUVFloat {
 		try {
 			server = new JorusUVFloat(poolName, poolSize, fileName);
 			// Install a shutdown hook that terminates Ibis.
-			// Runtime.getRuntime().addShutdownHook(new ShutDown(server));
+			Runtime.getRuntime().addShutdownHook(new ShutDown(server));
 
 			server.run();
 		} catch (Throwable e) {

@@ -17,6 +17,9 @@ import jorus.parallel.PxSystem;
 //import array.CxArray2dScalarDouble;
 
 public class PatGeneralizedConvolution2dSeparated {
+	
+	static Object cache;
+
 	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> source,
 			Array2d<T,?> kernelX, Array2d<T,?> kernelY,
 			GeneralizedConvolution1d<T> gco, SetBorder<T> sbo, boolean inplace) {
@@ -53,13 +56,13 @@ public class PatGeneralizedConvolution2dSeparated {
 				}
 
 				PatSetBorder.dispatch(dst, numX, 0, sbo);
-				U tmp = dst.clone();
-				gco.init(tmp, kernelX, 0, true);
-				gco.doIt(tmp.getData(), dst
-						.getData(), kernelX.getData());
+				U tmp = dst.shallowClone();
+//				U tmp = dst.clone();
+				gco.init(dst, kernelX, 0, true);
+				gco.doIt(tmp.getData(), dst.getData(), kernelX.getData());
 
 				PatSetBorder.dispatch(tmp, 0, numY, sbo);
-				gco.init(dst, kernelY, 1, true);
+				gco.init(tmp, kernelY, 1, true);
 				gco.doIt(dst.getData(), tmp
 						.getData(), kernelY.getData());
 			} catch (Exception e) {
@@ -70,7 +73,19 @@ public class PatGeneralizedConvolution2dSeparated {
 
 		} else { // run sequential
 			PatSetBorder.dispatch(dst, numX, 0, sbo);
-			U tmp = dst.clone();
+//			U tmp = dst.createCompatibleArray(dst.getWidth(), dst.getHeight(), dst.getBorderWidth(), dst.getBorderHeight());
+//			U tmp = dst.clone();
+			U tmp;
+			if(cache != null && cache.getClass().equals(dst.getClass()) &&
+					dst.equalSignature((U)cache) && 
+					dst.getBorderHeight() == ((U)cache).getBorderHeight() && 
+					dst.getBorderWidth() == ((U)cache).getBorderWidth()) {
+				tmp = (U)cache;
+			} else {
+				tmp = dst.shallowClone();
+				cache = tmp;
+//				System.err.println("miss");
+			}
 			gco.init(dst, kernelX, 0, false);
 			gco.doIt(tmp.getData(), dst.getData(), kernelX
 					.getData());

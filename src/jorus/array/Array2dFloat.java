@@ -66,8 +66,8 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 		super(orig, newBW, newBH);
 	}
 
-	public Array2dFloat(Array2dFloat<U> orig) {
-		super(orig);
+	public Array2dFloat(Array2dFloat<U> orig, boolean copyData) {
+		super(orig, copyData);
 	}
 
 	public Array2dFloat(int w, int h, int bw, int bh, int e, boolean create) {
@@ -494,6 +494,11 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 	@Override
 	public float[] createDataArray(int size) {
 		return new float[size];
+	}
+	
+	@Override
+	protected int getDataLength() {
+		return getData().length;
 	}
 
 	@Override

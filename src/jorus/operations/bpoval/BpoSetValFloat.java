@@ -18,9 +18,9 @@ public class BpoSetValFloat extends BpoVal<float[]> {
 	}
 
 	@Override
-	public void doRow(float[] dst, int row) {
+	public void doRow(float[] dst, int index) {
 		for (int i = 0; i < width; i++) {
-			dst[offset + row * (width + stride) + i] = value[i % value.length];
+			dst[index + i] = value[i % value.length];
 		}
 	}
 }

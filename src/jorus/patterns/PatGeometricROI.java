@@ -17,14 +17,16 @@ public class PatGeometricROI {
 
 	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> source, int newImWidth, int newImHeight, int beginX, int beginY,
 			GeometricROI<T> geometricROI) {
-		U destination = source.createCompatibleArray(newImWidth, newImHeight, 0, 0);
+		U destination;
 		
 		if (PxSystem.initialized()) { // run parallel
-
+//			destination.setState(Array2d.LOCAL_FULL); //TODO hack: createCompatibleArray needs to be fixed
 			final PxSystem px = PxSystem.get();
 
 			try {
 				source.changeStateTo(Array2d.LOCAL_FULL);
+				destination =  source.createCompatibleArray(newImWidth, newImHeight, 0, 0);
+				destination.setState(Array2d.LOCAL_FULL);
 
 				final int pHeight = px.getPartHeight(destination.getHeight(),
 						px.myCPU());
@@ -45,9 +47,11 @@ public class PatGeometricROI {
 			} catch (Exception e) {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
+				destination = null;
 			}
 
 		} else { // run sequential
+			destination =  source.createCompatibleArray(newImWidth, newImHeight, 0, 0);
 			if (destination.getState() == Array2d.NONE) {
 				final int length = destination.getWidth() * destination.getHeight() * destination.getExtent();
 

@@ -14,8 +14,10 @@ package jorus.operations.bpo;
 public class BpoMulDouble extends Bpo<double[]> {
 	
 	public void doRow(double[] dst, double[] src, int row) {
-			for (int i=0; i<width; i++) {
-				dst[offset1+row*(width+stride1)+i] *= src[offset2+row*(width+stride2)+i];
-			}
+		final int dstIndex = offset1 + row * (width + stride1);
+		final int srcIndex = offset2 + row * (width + stride2);
+		for (int i = 0; i < width; i++) {
+			dst[dstIndex + i] *= src[srcIndex + i];
+		}
 	}
 }

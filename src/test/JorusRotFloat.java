@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class JorusRotFloat {
 
-	private static final boolean ADJUSTSIZE = true;
+	private static final boolean ADJUSTSIZE = false;
 
 	private static final int ITER = 5; // number of iterations
 
@@ -189,9 +189,9 @@ public class JorusRotFloat {
 			// resultImage.getData();
 			// logger.debug("convUV: theta = " + theta + " finished");
 		}
-		if (adjustSize) {
-			resultImage = (Array2dScalarFloat) resultImage.restrict(beginX, beginY, beginX + width , beginY + height);
-		}
+//		if (adjustSize) {
+//			resultImage = (Array2dScalarFloat) resultImage.restrict(beginX, beginY, beginX + width , beginY + height);
+//		}
 		resultImage.createGlobalImage();
 		return resultImage;
 	}
@@ -289,7 +289,7 @@ public class JorusRotFloat {
 			if (px != null) {
 				px.printStatistics();
 			}
-			System.gc();
+//			System.gc();
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		System.err.println("Total execution time: " + totalTime + "ms");

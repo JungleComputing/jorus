@@ -21,10 +21,12 @@ public class BpoGetPixEltDouble extends Bpo<double[]> {
 	}
 
 	public void doRow(double[] dst, double[] src, int row) {
-		int e2 = src.length / dst.length;
+		final int e2 = src.length / dst.length;
+		final int dstIndex = offset1 + row * (width + stride1);
+		final int srcIndex = offset2 + row * (width * e2 + stride2) + index;
+		
 		for (int i = 0; i < width; i++) {
-			dst[offset1 + row * (width + stride1) + i] = src[offset2 + row
-					* (width * e2 + stride2) + i * e2 + index];
+			dst[dstIndex + i] = src[srcIndex + i * e2];
 		}
 	}
 }
