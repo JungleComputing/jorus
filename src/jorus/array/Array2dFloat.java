@@ -25,6 +25,7 @@ import jorus.operations.bpoval.BpoMaxValFloat;
 import jorus.operations.bpoval.BpoMinValFloat;
 import jorus.operations.bpoval.BpoMulValFloat;
 import jorus.operations.bpoval.BpoNegDivValFloat;
+import jorus.operations.bpoval.BpoPosDivValFloat;
 import jorus.operations.bpoval.BpoSetValFloat;
 import jorus.operations.bpoval.BpoSubValFloat;
 import jorus.operations.communication.SetBorderMirrorFloat;
@@ -59,11 +60,19 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 	 * 
 	 */
 	private static final long serialVersionUID = -6859296329319418412L;
+	
+	private static long createCounter = 0; // TODO debug counter
+
+	public static long getAndResetcreateCounter() {
+		long tmp = createCounter;
+		createCounter = 0;
+		return tmp;
+	}
 
 	/*** Public Methods ***********************************************/
 
-	public Array2dFloat(Array2dFloat<U> orig, int newBW, int newBH) {
-		super(orig, newBW, newBH);
+	public Array2dFloat(Array2dFloat<U> orig, int newBW, int newBH, boolean copyData) {
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dFloat(Array2dFloat<U> orig, boolean copyData) {
@@ -158,6 +167,14 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 			return null;
 		return PatBpoVal.dispatch(this, inpl,
 				new BpoNegDivValFloat(p.getValue()));
+	}
+	
+	@Override
+	public U posDivVal(Pixel<float[]> p, boolean inpl) {
+		if (!equalExtent(p))
+			return null;
+		return PatBpoVal.dispatch(this, inpl,
+				new BpoPosDivValFloat(p.getValue()));
 	}
 
 	@Override
@@ -458,7 +475,7 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 					(int) specs[1][1], 0, 0);
 			translationVector = specs[0];
 		} else {
-			destination = clone();
+			destination = shallowClone();
 			translationVector = new double[3];
 		}
 

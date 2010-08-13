@@ -39,33 +39,33 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 
 	/**
 	 * 
-	 * @param s1
-	 * @param ker1
+	 * @param source
+	 * @param kernel
 	 * @param phiRad the angle of rotation in radians
 	 * @param parallel
 	 */
-	public void init(Array2d<T,?> s1, Array2d<T,?> ker1, double phiRad,
+	public void init(Array2d<T,?> source, Array2d<T,?> kernel, double phiRad,
 			boolean parallel) {
 
-		extent = s1.getExtent();
+		extent = source.getExtent();
 		this.phiRad = phiRad;
 
-		int bw1 = s1.getBorderWidth();
+		int bw1 = source.getBorderWidth();
 
-		width = parallel ? s1.getPartialWidth() : s1.getWidth();
-		height = parallel ? s1.getPartialHeight() : s1.getHeight();
+		width = parallel ? source.getPartialWidth() : source.getWidth();
+		height = parallel ? source.getPartialHeight() : source.getHeight();
 		stride = bw1 * extent * 2;
 		rowSize = width * extent + stride;
-		totalHeight = height + 2 * s1.getBorderHeight();
-		totalWidth = width + 2 * s1.getBorderWidth();
-		offset = rowSize * s1.getBorderHeight() + (bw1 * extent);
+		totalHeight = height + 2 * source.getBorderHeight();
+		totalWidth = width + 2 * source.getBorderWidth();
+		offset = rowSize * source.getBorderHeight() + (bw1 * extent);
 		
 
-		kernelWidth = ker1.getWidth();
+		kernelWidth = kernel.getWidth();
 		halfKerSize = kernelWidth / 2;
 
 		if (extent == 1) {
-			if (ker1.getExtent() == 1) {
+			if (kernel.getExtent() == 1) {
 //				sig = Signature.SCALAR_SCALAR;
 				signature = SCALAR_SCALAR;
 			} else {
@@ -73,10 +73,10 @@ public abstract class GeneralizedConvolutionRotated1d<T> {
 				signature = INVALID;
 			}
 		} else {
-			if (ker1.getExtent() == 1) {
+			if (kernel.getExtent() == 1) {
 //				sig = Signature.VECTOR_SCALAR;
 				signature = VECTOR_SCALAR;
-			} else if (extent == ker1.getExtent()) {
+			} else if (extent == kernel.getExtent()) {
 //				sig = Signature.VECTOR_VECTOR;
 				signature = VECTOR_VECTOR;
 			} else {

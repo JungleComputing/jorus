@@ -28,17 +28,11 @@ public class PatGeneralizedConvolution2d {
 
 		if (PxSystem.initialized()) {
 			
-			final PxSystem px = PxSystem.get();
-
 			// run parallel
 			try {
-				if (sourceImage.getState() != Array2d.LOCAL_PARTIAL) {
-					px.scatter(sourceImage);
-				}
-				resultImage = sourceImage.shallowClone();
-				if (kernel.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernel);
-				}
+				sourceImage.changeStateTo(Array2d.LOCAL_PARTIAL);
+				resultImage = sourceImage.shallowClone(0, 0);
+				kernel.changeStateTo(Array2d.LOCAL_FULL);
 
 				PatSetBorder.dispatch(sourceImage, requiredBorderWidth, requiredBorderHeight,
 						borderOperation);
@@ -51,7 +45,7 @@ public class PatGeneralizedConvolution2d {
 				resultImage = null;
 			}
 		} else { // run sequential
-			resultImage = sourceImage.createCompatibleArray(sourceImage.getWidth(), sourceImage.getHeight(), 0, 0);
+			resultImage = sourceImage.shallowClone(0, 0);
 			PatSetBorder.dispatch(sourceImage, requiredBorderWidth, requiredBorderHeight,
 					borderOperation);
 			convolutionOperation.init(sourceImage, kernel, false);

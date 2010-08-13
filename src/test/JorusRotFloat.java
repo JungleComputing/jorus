@@ -20,7 +20,7 @@ public class JorusRotFloat {
 
 	private static final boolean ADJUSTSIZE = false;
 
-	private static final int ITER = 5; // number of iterations
+	private static final int ITER = 10; // number of iterations
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
@@ -148,8 +148,8 @@ public class JorusRotFloat {
 		/*** Loop over entire orientation scale-space ***/
 
 		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
-			Array2dScalarFloat rotatedImg = (Array2dScalarFloat) source.rotate(
-					-theta, true, false, p);
+			Array2dScalarFloat rotatedImg = source.rotate(-theta, true, false, p);
+//			Array2dScalarFloat rotatedImg = source.clone();
 
 			Array2dScalarFloat contrastIm = (Array2dScalarFloat) rotatedImg
 					.setVal(contrastPixel, false);
@@ -158,28 +158,24 @@ public class JorusRotFloat {
 				for (float sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
 
-						Array2dScalarFloat filtIm1 = (Array2dScalarFloat) rotatedImg
-								.convGauss2d(sx, 2, 3, sy, 0, 3, false);
-						Array2dScalarFloat filtIm2 = (Array2dScalarFloat) rotatedImg
-								.convGauss2d(sx, 0, 3, sy, 0, 3, false);
-//						filtIm1 = (Array2dScalarFloat) filtIm1.negDiv(filtIm2,
-//								true);
-						 filtIm1 = (Array2dScalarFloat)
-						 filtIm1.posDiv(filtIm2, true);
-						// filtIm1 = (Array2dScalarFloat)
-						// filtIm1.absDiv(filtIm2,
-						// true);
+						Array2dScalarFloat filtIm1 = rotatedImg.convGauss2d(sx, 2, 3, sy, 0, 3, false);
+						Array2dScalarFloat filtIm2 = rotatedImg.convGauss2d(sx, 0, 3, sy, 0, 3, false);
+//						filtIm1 = filtIm1.negDiv(filtIm2, true);
+						 filtIm1 = filtIm1.posDiv(filtIm2, true);
+						// filtIm1 = filtIm1.absDiv(filtIm2, true);
 
 						filtIm1 = filtIm1.mulVal(
 								new PixelFloat(sx * sy), true);
 
-						contrastIm.max(filtIm1, true);
+						contrastIm = contrastIm.max(filtIm1, true);
 					}
 				}
 			}
 
-			Array2dScalarFloat backRotatedIm = (Array2dScalarFloat) contrastIm
+			Array2dScalarFloat backRotatedIm = contrastIm
 					.rotate(theta, true, false, p);
+//			Array2dScalarFloat backRotatedIm = contrastIm.clone();
+			
 			if (resultImage == null) {
 				resultImage = backRotatedIm;
 			} else {
@@ -190,7 +186,7 @@ public class JorusRotFloat {
 			// logger.debug("convUV: theta = " + theta + " finished");
 		}
 //		if (adjustSize) {
-//			resultImage = (Array2dScalarFloat) resultImage.restrict(beginX, beginY, beginX + width , beginY + height);
+//			resultImage = resultImage.restrict(beginX, beginY, beginX + width , beginY + height);
 //		}
 		resultImage.createGlobalImage();
 		return resultImage;

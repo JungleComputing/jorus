@@ -18,7 +18,8 @@ import jorus.pixel.Pixel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializable {
+public abstract class Array2d<T, U extends Array2d<T, U>> implements
+		Serializable {
 	private static final long serialVersionUID = -378351580205311141L;
 
 	private static final Logger logger = LoggerFactory.getLogger(Array2d.class);
@@ -132,8 +133,15 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 
 		if (copyData && original.data != null) {
 			data = original.copyArray();
-		} else {
-			data = createDataArray(original.getDataLength());
+		} else if (state == LOCAL_FULL || state == LOCAL_PARTIAL
+				|| state == LOCAL_NOT_REDUCED) {
+			final int fullWidth = partialWidth + 2 * borderWidth;
+			final int fullHeight = partialHeight + 2 * borderHeight;
+			data = createDataArray(fullWidth * fullHeight * extent);
+		} else if (state == GLOBAL_CREATED || state == GLOBAL_VALID) {
+			final int fullWidth = width + 2 * borderWidth;
+			final int fullHeight = height + 2 * borderHeight;
+			data = createDataArray(fullWidth * fullHeight * extent);
 		}
 	}
 
@@ -142,14 +150,13 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	// border dimensions). Other state is unchanged -- J
 	// Timo: Note that the border data that is _NOT_ copied
 	protected Array2d(Array2d<T, U> original, int newBorderWidth,
-			int newBorderHeight) {
+			int newBorderHeight, boolean copyData) {
 		setDimensions(original.width, original.height, newBorderWidth,
 				newBorderHeight, original.extent);
 		state = original.state;
 		partialWidth = original.partialWidth;
 		partialHeight = original.partialHeight;
 		requiredReduceOp = original.requiredReduceOp;
-
 		if (original.data != null) {
 			if (state == GLOBAL_CREATED) {
 				// no real data in array, just create a new one
@@ -163,45 +170,47 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 				final int fullHeight = height + 2 * borderHeight;
 				data = createDataArray(fullWidth * fullHeight * extent);
 
-				final int oldStride = original.borderWidth * extent * 2;
-				final int oldRowSize = oldStride + original.width * extent;
-				final int oldOffset = oldRowSize * original.borderHeight
-						+ original.borderWidth * extent;
+				if (copyData) {
+					final int oldStride = original.borderWidth * extent * 2;
+					final int oldRowSize = oldStride + original.width * extent;
+					final int oldOffset = oldRowSize * original.borderHeight
+							+ original.borderWidth * extent;
 
-				final int newStride = borderWidth * extent * 2;
-				final int newRowSize = newStride + original.width * extent;
-				final int newOffset = newRowSize * borderHeight + borderWidth
-						* extent;
+					final int newStride = borderWidth * extent * 2;
+					final int newRowSize = newStride + original.width * extent;
+					final int newOffset = newRowSize * borderHeight
+							+ borderWidth * extent;
 
-				for (int j = 0; j < original.height; j++) {
-					final int srcPtr = oldOffset + j * oldRowSize;
-					final int dstPtr = newOffset + j * newRowSize;
-					System.arraycopy(original.data, srcPtr, data, dstPtr, width
-							* extent);
+					for (int j = 0; j < original.height; j++) {
+						final int srcPtr = oldOffset + j * oldRowSize;
+						final int dstPtr = newOffset + j * newRowSize;
+						System.arraycopy(original.data, srcPtr, data, dstPtr,
+								width * extent);
+					}
 				}
 			} else if (state == LOCAL_PARTIAL) {
 				// only copy the partial data of the old array
 				final int fullWidth = partialWidth + 2 * borderWidth;
 				final int fullHeight = partialHeight + 2 * borderHeight;
 				data = createDataArray(fullWidth * fullHeight * extent);
+				if (copyData) {
+					final int oldStride = original.borderWidth * extent * 2;
+					final int oldRowSize = oldStride + original.partialWidth
+							* extent;
+					final int oldOffset = oldRowSize * original.borderHeight
+							+ original.borderWidth * extent;
 
-				final int oldStride = original.borderWidth * extent * 2;
-				final int oldRowSize = oldStride + original.partialWidth
-						* extent;
-				final int oldOffset = oldRowSize * original.borderHeight
-						+ original.borderWidth * extent;
+					final int newStride = borderWidth * extent * 2;
+					final int newRowSize = newStride + partialWidth * extent;
+					final int newOffset = newRowSize * borderHeight
+							+ borderWidth * extent;
 
-				final int newStride = borderWidth * extent * 2;
-				final int newRowSize = newStride + original.partialWidth
-						* extent;
-				final int newOffset = newRowSize * borderHeight + borderWidth
-						* extent;
-
-				for (int j = 0; j < original.partialHeight; j++) {
-					final int srcPtr = oldOffset + j * oldRowSize;
-					final int dstPtr = newOffset + j * newRowSize;
-					System.arraycopy(original.data, srcPtr, data, dstPtr, width
-							* extent);
+					for (int j = 0; j < partialHeight; j++) {
+						final int srcPtr = oldOffset + j * oldRowSize;
+						final int dstPtr = newOffset + j * newRowSize;
+						System.arraycopy(original.data, srcPtr, data, dstPtr,
+								partialWidth * extent);
+					}
 				}
 			} else {
 				if (logger.isDebugEnabled()) {
@@ -267,7 +276,7 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public T getData() {
 		return data;
 	}
-	
+
 	protected abstract int getDataLength();
 
 	// public T getDataReadOnly() {
@@ -508,8 +517,10 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public abstract U clone();
 
 	public abstract U clone(int newBorderWidth, int newBorderHeight);
-	
+
 	public abstract U shallowClone();
+
+	public abstract U shallowClone(int newBorderWidth, int newBorderHeight);
 
 	public abstract U createCompatibleArray(int width, int height,
 			int borderWidth, int borderHeight);
@@ -557,6 +568,8 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public abstract U maxVal(Pixel<T> p, boolean inpl);
 
 	public abstract U negDivVal(Pixel<T> p, boolean inpl);
+	
+	public abstract U posDivVal(Pixel<T> p, boolean inpl);
 
 	public abstract U absDivVal(Pixel<T> p, boolean inpl);
 
@@ -599,8 +612,7 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public abstract U convKernelSeparated2d(Array2d<T, ?> kernelX,
 			Array2d<T, ?> kernelY, boolean inplace);
 
-	public final U convKernelSeparated(Array2d<T, ?> kernel,
-			boolean inplace) {
+	public final U convKernelSeparated(Array2d<T, ?> kernel, boolean inplace) {
 		return convKernelSeparated2d(kernel, kernel, inplace);
 	}
 
@@ -608,8 +620,7 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 
 	public abstract U convolution1d(Array2d<T, ?> kernel, int dimension);
 
-	public abstract U convolutionRotated1d(Array2d<T, ?> kernel,
-			double phirad);
+	public abstract U convolutionRotated1d(Array2d<T, ?> kernel, double phirad);
 
 	public abstract U convGauss2d(double sigmaX, int orderDerivX,
 			double truncationX, double sigmaY, int orderDerivY,
@@ -628,8 +639,7 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	public abstract U convGauss1x2d(double sigmaR, double sigmaT,
 			double phiDegrees, int derivativeT, double n);
 
-	public final U gauss(double sigma, double truncation,
-			boolean inplace) {
+	public final U gauss(double sigma, double truncation, boolean inplace) {
 		return gaussDerivative2d(sigma, 0, 0, truncation, inplace);
 
 	}
@@ -642,9 +652,9 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 
 	/** Anisotropic Convolution **/
 
-	public abstract U convGaussAnisotropic2d(double sigmaU,
-			int orderDerivU, double truncationU, double sigmaV,
-			int orderDerivV, double truncationV, double phiRad, boolean inplace);
+	public abstract U convGaussAnisotropic2d(double sigmaU, int orderDerivU,
+			double truncationU, double sigmaV, int orderDerivV,
+			double truncationV, double phiRad, boolean inplace);
 
 	/** Geometric Operations **/
 
@@ -768,19 +778,19 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements Serializabl
 	 *            when false, corners may be chopped off the image
 	 * @return the scaled image
 	 */
-	public final U scale(double sx, double sy,
-			boolean linearInterpolation, boolean adjustSize, Pixel<T> background) {
+	public final U scale(double sx, double sy, boolean linearInterpolation,
+			boolean adjustSize, Pixel<T> background) {
 		Matrix m = Matrix.scale2d(sx, sy);
 		return geometricOp2d(m, true, linearInterpolation, adjustSize, null);
 	}
 
 	/** Geometric ROI operations **/
 
-	public abstract U geometricOpROI(int newImWidth,
-			int newImHeight, Pixel<T> background, int beginX, int beginY);
+	public abstract U geometricOpROI(int newImWidth, int newImHeight,
+			Pixel<T> background, int beginX, int beginY);
 
-	public final U extend(int newImWidth, int newImHeight,
-			Pixel<T> background, int beginX, int beginY) {
+	public final U extend(int newImWidth, int newImHeight, Pixel<T> background,
+			int beginX, int beginY) {
 		return geometricOpROI(newImWidth, newImHeight, background, -beginX,
 				-beginY);
 	}

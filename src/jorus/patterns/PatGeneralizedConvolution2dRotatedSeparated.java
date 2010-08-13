@@ -58,8 +58,11 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 
 			try {
 				if (dst.getState() != Array2d.LOCAL_PARTIAL) {
-					if (root)
-						logger.debug("GENCONV SCATTER 1...");
+					if (root) {
+						if(logger.isDebugEnabled()) {
+							logger.debug("GENCONV SCATTER 1...");
+						}
+					}
 					px.scatter(dst);
 				}
 				if (kernelU.getState() != Array2d.LOCAL_FULL) {

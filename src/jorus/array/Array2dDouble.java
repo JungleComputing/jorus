@@ -25,6 +25,7 @@ import jorus.operations.bpoval.BpoMaxValDouble;
 import jorus.operations.bpoval.BpoMinValDouble;
 import jorus.operations.bpoval.BpoMulValDouble;
 import jorus.operations.bpoval.BpoNegDivValDouble;
+import jorus.operations.bpoval.BpoPosDivValDouble;
 import jorus.operations.bpoval.BpoSetValDouble;
 import jorus.operations.bpoval.BpoSubValDouble;
 import jorus.operations.communication.SetBorderMirrorDouble;
@@ -62,8 +63,8 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 
 	/*** Public Methods ***********************************************/
 
-	public Array2dDouble(Array2dDouble<U> orig, int newBW, int newBH) {
-		super(orig, newBW, newBH);
+	public Array2dDouble(Array2dDouble<U> orig, int newBW, int newBH, boolean copyData) {
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dDouble(Array2dDouble<U> orig, boolean copyData) {
@@ -165,6 +166,14 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 			return null;
 		return PatBpoVal.dispatch(this, inpl,
 				new BpoNegDivValDouble(p.getValue()));
+	}
+	
+	@Override
+	public U posDivVal(Pixel<double[]> p, boolean inpl) {
+		if (!equalExtent(p))
+			return null;
+		return PatBpoVal.dispatch(this, inpl,
+				new BpoPosDivValDouble(p.getValue()));
 	}
 
 	@Override

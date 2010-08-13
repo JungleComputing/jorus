@@ -20,8 +20,8 @@ public class Array2dVecFloat extends Array2dFloat<Array2dVecFloat> {
 
 	/*** Public Methods ***********************************************/
 
-	public Array2dVecFloat(Array2dVecFloat orig, int newBW, int newBH) {
-		super(orig, newBW, newBH);
+	public Array2dVecFloat(Array2dVecFloat orig, int newBW, int newBH, boolean copyData) {
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dVecFloat(Array2dVecFloat orig, boolean copyData) {
@@ -97,6 +97,14 @@ public class Array2dVecFloat extends Array2dFloat<Array2dVecFloat> {
 	}
 	
 	@Override
+	public Array2dVecFloat shallowClone(int newBorderWidth, int newBorderHeight) {
+		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
+			return shallowClone();
+		}
+		return new Array2dVecFloat(this, newBorderWidth, newBorderHeight, false);
+	}
+	
+	@Override
 	public Array2dVecFloat clone() {
 		return new Array2dVecFloat(this, true);
 	}
@@ -106,7 +114,7 @@ public class Array2dVecFloat extends Array2dFloat<Array2dVecFloat> {
 		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
 			return clone();
 		}
-		return new Array2dVecFloat(this, newBorderWidth, newBorderHeight);
+		return new Array2dVecFloat(this, newBorderWidth, newBorderHeight, true);
 	}
 
 	

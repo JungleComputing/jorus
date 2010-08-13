@@ -104,20 +104,20 @@ public class SetBorderMirrorFloat extends SetBorder<float[]> {
 				// Mirror left part NOT including upper and lower "corners"
 				for (int j = 0; j < height; j++) {
 					int imageIndex = offset + j * rowSize;
-					int borderIndex = imageIndex - extent;
+					int borderIndex = imageIndex - 1;
 					for (int i = 0; i < numX; i++) {
-						destination[borderIndex - i * extent] = destination[imageIndex
-								+ i * extent];
+						destination[borderIndex - i] = destination[imageIndex
+								+ i];
 					}
 				}
 
 				// Mirror right part NOT including upper and lower "corners"
 				for (int j = 0; j < height; j++) {
-					int borderIndex = offset + j * rowSize + width * extent;
-					int imageIndex = borderIndex - extent;
+					int borderIndex = offset + j * rowSize + width;
+					int imageIndex = borderIndex - 1;
 					for (int i = 0; i < numX; i++) {
-						destination[borderIndex + i * extent] = destination[imageIndex
-								- i * extent];
+						destination[borderIndex + i] = destination[imageIndex
+								- i];
 					}
 				}
 
@@ -151,7 +151,7 @@ public class SetBorderMirrorFloat extends SetBorder<float[]> {
 
 		if (numY > 0) {
 			try {
-				PxSystem.get().borderExchange(destination, width * extent,
+				px.borderExchange(destination, width * extent,
 						height, offset, stride, numY);
 				// PxSystem.get().borderExchangeTimo(destination, width *
 				// extent, height, offset - stride/2, rowSize, numY);
@@ -161,9 +161,10 @@ public class SetBorderMirrorFloat extends SetBorder<float[]> {
 
 			// Mirror top part including left and right "corners"
 
-			final int baseRow = offset - stride / 2;
+			
 
 			if (px.myCPU() == 0) { // the first CPU
+				final int baseRow = offset - stride / 2;
 				for (int j = 0; j < numY; j++) {
 					int borderIndex = baseRow - (1 + j) * rowSize;
 					int imageIndex = baseRow + j * rowSize;
@@ -177,9 +178,10 @@ public class SetBorderMirrorFloat extends SetBorder<float[]> {
 			// Mirror bottom part including left and right "corners"
 
 			if (px.myCPU() == px.nrCPUs() - 1) {
+				final int baseRow = offset - stride / 2 + (height) * rowSize;
 				for (int j = 0; j < numY; j++) {
-					int borderIndex = baseRow + (height + j) * rowSize;
-					int imageIndex = baseRow + (height - 1 - j) * rowSize;
+					int borderIndex = baseRow + j * rowSize;
+					int imageIndex = baseRow - (j + 1) * rowSize;
 					for (int i = 0; i < rowSize; i++) {
 						destination[borderIndex + i] = destination[imageIndex
 								+ i];

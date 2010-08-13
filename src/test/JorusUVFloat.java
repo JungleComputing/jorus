@@ -123,25 +123,17 @@ public class JorusUVFloat {
 			for (sy = MIN_SY; sy < MAX_SY; sy += STEP_SY) {
 				for (sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
-						filtIm1 = (Array2dScalarFloat) source
-								.convGaussAnisotropic2d(sx, 2, 3, sy, 0, 3,
+						filtIm1 = source.convGaussAnisotropic2d(sx, 2, 3, sy, 0, 3,
 										thetaRad, false);
-						filtIm2 = (Array2dScalarFloat) source
-								.convGaussAnisotropic2d(sx, 0, 3, sy, 0, 3,
+						filtIm2 = source.convGaussAnisotropic2d(sx, 0, 3, sy, 0, 3,
 										thetaRad, false);
-						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-								.posDiv(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-//						.div(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-//						.absDiv(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1;
-						contrastIm = (Array2dScalarFloat) contrastIm
-								.mulVal(new PixelFloat(
-										new float[] { sx * sy }), true);
+						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
+//						Array2dScalarFloat contrastIm = filtIm1.div(filtIm2, true);
+//						Array2dScalarFloat contrastIm = filtIm1.absDiv(filtIm2, true);
+//						Array2dScalarFloat contrastIm = filtIm1;
+						contrastIm = contrastIm.mulVal(new PixelFloat(sx * sy), true);
 
-						resultImage = (Array2dScalarFloat) resultImage.max(
-								contrastIm, true);
+						resultImage = resultImage.max(contrastIm, true);
 					}
 				}
 			}

@@ -11,6 +11,7 @@ package jorus.operations.geometric;
 
 import jorus.array.Array2d;
 import jorus.array.Matrix;
+import jorus.parallel.PxSystem;
 
 public abstract class Geometric2d<T> {
 	protected int extent = 0;
@@ -69,6 +70,14 @@ public abstract class Geometric2d<T> {
 		destinationRowWidth = destinationWidth * extent + destinationStride;
 		destinationOffset = destinationRowWidth * destination.getBorderHeight()
 				+ (borderWidth * extent);
+		
+		
+		if(parallel) {
+//			We do not have this one: only vertical data partitioning
+			PxSystem px = PxSystem.get();
+//			translationVector[0] += px.getLclStartX(source.getHeight(), px.myCPU());
+			translationVector[1] += px.getLclStartY(source.getHeight(), px.myCPU());
+		}
 
 	}
 

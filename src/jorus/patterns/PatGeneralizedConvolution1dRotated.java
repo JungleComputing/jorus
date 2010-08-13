@@ -23,8 +23,8 @@ public class PatGeneralizedConvolution1dRotated {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PatGeneralizedConvolution1dRotated.class);
 
-	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> sourceImage,
-			Array2d<T,?> kernel, double theta,
+	public static <T, U extends Array2d<T, U>> U dispatch(
+			Array2d<T, U> sourceImage, Array2d<T, ?> kernel, double theta,
 			GeneralizedConvolutionRotated1d<T> convolutionOperation,
 			SetBorder<T> borderOperation) {
 
@@ -47,8 +47,11 @@ public class PatGeneralizedConvolution1dRotated {
 
 			try {
 				if (result.getState() != Array2d.LOCAL_PARTIAL) {
-					if (px.isRoot())
-						logger.debug("GENCONV SCATTER 1...");
+					if (px.isRoot()) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("GENCONV SCATTER 1...");
+						}
+					}
 					px.scatter(result);
 				}
 				if (kernel.getState() != Array2d.LOCAL_FULL) {
@@ -71,8 +74,8 @@ public class PatGeneralizedConvolution1dRotated {
 					borderOperation);
 
 			convolutionOperation.init(temp, kernel, theta, false);
-			convolutionOperation.doIt(result.getData(), temp.getData(), kernel
-					.getData());
+			convolutionOperation.doIt(result.getData(), temp.getData(),
+					kernel.getData());
 		}
 
 		return result;

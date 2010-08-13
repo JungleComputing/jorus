@@ -25,30 +25,8 @@ public class PatGeometric2d {
 			try {
 				source.changeStateTo(Array2d.LOCAL_FULL);
 				destination.changeStateTo(Array2d.LOCAL_PARTIAL);
+				
 
-				if (destination.getState() != Array2d.NONE) {
-
-					px.scatter(destination);
-
-				} else {
-					// Added -- J
-					//
-					// A hack that assumes dst is a target data structure
-					// which we do not need to
-					// scatter. We only initialize the local partitions.
-
-					final int pHeight = px.getPartHeight(source.getHeight(),
-							px.myCPU());
-
-					final int length = (source.getWidth() + source
-							.getBorderWidth() * 2)
-							* (pHeight + source.getBorderHeight() * 2)
-							* source.getExtent();
-
-					source.setPartialData(source.getWidth(), pHeight,
-							source.createDataArray(length),
-							Array2d.LOCAL_PARTIAL);
-				}
 
 				geometric2d.init(destination, source, true);
 				geometric2d.doIt(destination.getData(), source.getData());

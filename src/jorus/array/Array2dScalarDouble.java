@@ -21,9 +21,9 @@ public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 
 	/** * Public Methods ********************************************** */
 
-	public Array2dScalarDouble(Array2dScalarDouble orig, int newBW, int newBH) {
+	public Array2dScalarDouble(Array2dScalarDouble orig, int newBW, int newBH, boolean copyData) {
 		
-		super(orig, newBW, newBH);
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dScalarDouble(Array2dScalarDouble orig, boolean copyData) {
@@ -123,6 +123,14 @@ public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 	public Array2dScalarDouble shallowClone() {
 		return new Array2dScalarDouble(this, false);
 	}
+	
+	@Override
+	public Array2dScalarDouble shallowClone(int newBorderWidth, int newBorderHeight) {
+		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
+			return shallowClone();
+		}
+		return new Array2dScalarDouble(this, newBorderWidth, newBorderHeight, false);
+	}
 
 	@Override
 	public Array2dScalarDouble clone() {
@@ -134,7 +142,7 @@ public class Array2dScalarDouble extends Array2dDouble<Array2dScalarDouble> {
 		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
 			return clone();
 		}
-		return new Array2dScalarDouble(this, newBorderWidth, newBorderHeight);
+		return new Array2dScalarDouble(this, newBorderWidth, newBorderHeight, true);
 	}
 
 	@Override

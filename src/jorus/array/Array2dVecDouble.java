@@ -20,8 +20,8 @@ public class Array2dVecDouble extends Array2dDouble<Array2dVecDouble> {
 
 	/*** Public Methods ***********************************************/
 
-	public Array2dVecDouble(Array2dVecDouble orig, int newBW, int newBH) {
-		super(orig, newBW, newBH);
+	public Array2dVecDouble(Array2dVecDouble orig, int newBW, int newBH, boolean copyData) {
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dVecDouble(Array2dVecDouble orig, boolean copyData) {
@@ -95,6 +95,14 @@ public class Array2dVecDouble extends Array2dDouble<Array2dVecDouble> {
 	public Array2dVecDouble shallowClone() {
 		return new Array2dVecDouble(this, false);
 	}
+	
+	@Override
+	public Array2dVecDouble shallowClone(int newBorderWidth, int newBorderHeight) {
+		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
+			return shallowClone();
+		}
+		return new Array2dVecDouble(this, newBorderWidth, newBorderHeight, false);
+	}
 
 	@Override
 	public Array2dVecDouble clone() {
@@ -106,7 +114,7 @@ public class Array2dVecDouble extends Array2dDouble<Array2dVecDouble> {
 		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
 			return clone();
 		}
-		return new Array2dVecDouble(this, newBorderWidth, newBorderHeight);
+		return new Array2dVecDouble(this, newBorderWidth, newBorderHeight, true);
 	}
 
 	

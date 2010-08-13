@@ -21,9 +21,9 @@ public class Array2dScalarFloat extends Array2dFloat<Array2dScalarFloat> {
 
 	/** * Public Methods ********************************************** */
 
-	public Array2dScalarFloat(Array2dScalarFloat orig, int newBW, int newBH) {
+	public Array2dScalarFloat(Array2dScalarFloat orig, int newBW, int newBH, boolean copyData) {
 		
-		super(orig, newBW, newBH);
+		super(orig, newBW, newBH, copyData);
 	}
 
 	public Array2dScalarFloat(Array2dScalarFloat orig, boolean copyData) {
@@ -118,11 +118,6 @@ public class Array2dScalarFloat extends Array2dFloat<Array2dScalarFloat> {
 		}
 		return;
 	}*/
-
-	@Override
-	public Array2dScalarFloat shallowClone() {
-		return new Array2dScalarFloat(this, false);
-	}
 	
 	@Override
 	public Array2dScalarFloat clone() {
@@ -134,7 +129,20 @@ public class Array2dScalarFloat extends Array2dFloat<Array2dScalarFloat> {
 		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
 			return clone();
 		}
-		return new Array2dScalarFloat(this, newBorderWidth, newBorderHeight);
+		return new Array2dScalarFloat(this, newBorderWidth, newBorderHeight, true);
+	}
+	
+	@Override
+	public Array2dScalarFloat shallowClone() {
+		return new Array2dScalarFloat(this, false);
+	}
+	
+	@Override
+	public Array2dScalarFloat shallowClone(int newBorderWidth, int newBorderHeight) {
+		if(newBorderWidth == getBorderWidth() && newBorderHeight == getBorderHeight()) {
+			return shallowClone();
+		}
+		return new Array2dScalarFloat(this, newBorderWidth, newBorderHeight, false);
 	}
 
 	@Override

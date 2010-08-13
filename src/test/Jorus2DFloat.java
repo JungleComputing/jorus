@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class Jorus2DFloat {
 
-	private static final int ITER = 5; // number of iterations
+	private static final int ITER = 10; // number of iterations
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
@@ -122,24 +122,19 @@ public class Jorus2DFloat {
 			for (sy = MIN_SY; sy < MAX_SY; sy += STEP_SY) {
 				for (sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
-						filtIm1 = (Array2dScalarFloat) source.convGauss1x2d(sx, sy, -theta, 2, 3);
-						filtIm2 = (Array2dScalarFloat) source.convGauss1x2d(sx, sy, -theta, 0, 3);
+						filtIm1 = source.convGauss1x2d(sx, sy, -theta, 2, 3);
+						filtIm2 = source.convGauss1x2d(sx, sy, -theta, 0, 3);
 						
 //						
 						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-//						.div(filtIm2, true);
-//						Array2dScalarFloat contrastIm = (Array2dScalarFloat) filtIm1
-//						.posDiv(filtIm2, true);
+//						Array2dScalarFloat contrastIm = filtIm1.div(filtIm2, true);
+//						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
 
 //						Array2dScalarFloat contrastIm = filtIm1;
 						
-//						contrastIm = (Array2dScalarFloat) contrastIm
-//								.mulVal(new PixelFloat(
-//										new float[] { sx * sy }), true);
+						contrastIm = contrastIm.mulVal(new PixelFloat(sx * sy), true);
 
-						resultImage = (Array2dScalarFloat) resultImage.max(
-								contrastIm, true);
+						resultImage = resultImage.max(contrastIm, true);
 					}
 				}
 			}
