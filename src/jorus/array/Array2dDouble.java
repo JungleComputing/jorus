@@ -449,7 +449,8 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 			boolean forwardMatrix, boolean linearInterpolation,
 			boolean adjustSize, Pixel<double[]> background) {
 		double[] translationVector;
-
+		int newWidth, newHeight;
+		
 		Matrix forwardsTransformationMatrix = transformationMatrix.clone();
 		Matrix backwardsTransformationMatrix = transformationMatrix.clone();
 		try {
@@ -464,21 +465,25 @@ public abstract class Array2dDouble<U extends Array2d<double[], U>> extends Arra
 		}
 
 		/*** Create result image and translation vector ***/
-		U destination;
+//		U destination;
 		if (adjustSize) {
 			double[][] specs = calculateDimensionsandTranslationVector(forwardsTransformationMatrix);
-			destination = createCompatibleArray((int) specs[1][0],
-					(int) specs[1][1], 0, 0);
+			newWidth = (int) specs[1][0];
+			newHeight= (int) specs[1][1];
+//			destination = createCompatibleArray((int) specs[1][0],
+//					(int) specs[1][1], 0, 0);
 			translationVector = specs[0];
 		} else {
-			destination = clone();
+//			destination = clone();
+			newWidth = getWidth();
+			newHeight= getHeight();
 			translationVector = new double[3];
 		}
 
 		Geometric2dDouble geometricOperation = new Geometric2dDouble(
 				backwardsTransformationMatrix, translationVector,
 				background.getValue(), linearInterpolation);
-		return PatGeometric2d.dispatch(destination, this, geometricOperation);
+		return PatGeometric2d.dispatch(this, geometricOperation, newWidth, newHeight);
 	}
 
 	/*

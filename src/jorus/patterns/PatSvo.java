@@ -14,8 +14,8 @@ import jorus.operations.svo.Svo;
 import jorus.parallel.PxSystem;
 
 public class PatSvo {
-	public static <T,U extends Array2d<T,U>> U dispatch(Array2d<T,U> s1, int x, int y,
-			boolean inplace, Svo<T> svo) {
+	public static <T, U extends Array2d<T, U>> U dispatch(Array2d<T, U> s1,
+			int x, int y, boolean inplace, Svo<T> svo) {
 		U dst = (U) s1;
 
 		if (PxSystem.initialized()) { // run parallel
@@ -25,35 +25,29 @@ public class PatSvo {
 
 			try {
 
-				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
+				if (s1.getState() != Array2d.NONE) {
 
-					// The data structure has not been distibuted yet, or is no
-					// longer valid
+					// if (px.isRoot())
+					// System.out.println("SVO SCATTER 1...");
+					// px.scatter(dst);
+					s1.changeStateTo(Array2d.LOCAL_PARTIAL);
 
-					// if (s1.getGlobalState() != GlobalState.NONE) {
-					if (s1.getState() != Array2d.NONE) {
+				} else {
+					// Added -- J
+					//
+					// A hack that assumes dst is a target data structure
+					// which we do not need to
+					// scatter. We only initialize the local partitions.
 
-						if (px.isRoot())
-							System.out.println("SVO SCATTER 1...");
-						px.scatter(dst);
+					final int pHeight = px.getPartHeight(s1.getHeight(), px
+							.myCPU());
 
-					} else {
-						// Added -- J
-						//
-						// A hack that assumes dst is a target data structure
-						// which we do not need to
-						// scatter. We only initialize the local partitions.
+					final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
+							* (pHeight + s1.getBorderHeight() * 2)
+							* s1.getExtent();
 
-						final int pHeight = px.getPartHeight(s1.getHeight(), px
-								.myCPU());
-
-						final int size = (s1.getWidth() + s1.getBorderWidth() * 2)
-								* (pHeight + s1.getBorderHeight() * 2)
-								* s1.getExtent();
-
-						s1.setPartialData(s1.getWidth(), pHeight, s1
-								.createDataArray(size), Array2d.LOCAL_PARTIAL);
-					}
+					s1.setPartialData(s1.getWidth(), pHeight, s1
+							.createDataArray(size), Array2d.LOCAL_PARTIAL);
 				}
 
 				if (!inplace)

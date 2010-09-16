@@ -23,15 +23,17 @@ public class Jorus2DFloat {
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 5; //5; // 15 for minimal measurement
+	private static final int STEP_THETA = 1; // 5; // 15 for minimal measurement
 
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
-	private static final float STEP_SX = 1;//4; // 1; // 2.0 for minimal measurement
+	private static final float STEP_SX = 1;// 4; // 1; // 2.0 for minimal
+	// measurement
 
 	private static final float MIN_SY = 3; // 3.0 for minimal measurement
 	private static final float MAX_SY = 9; // 11.0 for minimal measurement
-	private static final float STEP_SY = 2;//9; //2; // 4.0 for minimal measurement
+	private static final float STEP_SY = 2;// 9; //2; // 4.0 for minimal
+	// measurement
 
 	private static final boolean Fixed = true; // Fixed MAX_SX: YES/NO
 
@@ -43,7 +45,8 @@ public class Jorus2DFloat {
 		return (Fixed ? STEP_SX : (sx / 2));
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(Jorus2DFloat.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(Jorus2DFloat.class);
 
 	private final PxSystem px;
 	private final boolean master;
@@ -124,15 +127,19 @@ public class Jorus2DFloat {
 					if (sx != sy) {
 						filtIm1 = source.convGauss1x2d(sx, sy, -theta, 2, 3);
 						filtIm2 = source.convGauss1x2d(sx, sy, -theta, 0, 3);
-						
-//						
-						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
-//						Array2dScalarFloat contrastIm = filtIm1.div(filtIm2, true);
-//						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2, true);
 
-//						Array2dScalarFloat contrastIm = filtIm1;
-						
-						contrastIm = contrastIm.mulVal(new PixelFloat(sx * sy), true);
+						//						
+						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2,
+								true);
+						// Array2dScalarFloat contrastIm = filtIm1.div(filtIm2,
+						// true);
+						// Array2dScalarFloat contrastIm =
+						// filtIm1.posDiv(filtIm2, true);
+
+						// Array2dScalarFloat contrastIm = filtIm1;
+
+						contrastIm = contrastIm.mulVal(new PixelFloat(sx * sy),
+								true);
 
 						resultImage = resultImage.max(contrastIm, true);
 					}
@@ -145,8 +152,7 @@ public class Jorus2DFloat {
 		return resultImage;
 	}
 
-	private void singleRun(Array2dScalarFloat array, boolean master,
-			String name) {
+	private Array2dScalarFloat singleRun(Array2dScalarFloat array, boolean master, String name) {
 
 		long computing = 0;
 		long end = 0;
@@ -183,16 +189,16 @@ public class Jorus2DFloat {
 			// logger.info("Processing took: " + (end - computing));
 			System.out.println("Processing took: " + (end - computing) + " ms");
 
-			Array2dScalarFloat viewImage = result;// .clone(0,0);
-			try {
-				viewImage(viewImage.getData(), viewImage.getWidth(),
-						viewImage.getHeight(), name);
-			} catch (Exception e) {
-
-//				e.printStackTrace();
-			}
+//			Array2dScalarFloat viewImage = result;// .clone(0,0);
+//			try {
+//				viewImage(viewImage.getData(), viewImage.getWidth(), viewImage
+//						.getHeight(), name);
+//			} catch (Exception e) {
+//
+//				// e.printStackTrace();
+//			}
 		}
-
+		return result;
 	}
 
 	private void run() {
@@ -218,27 +224,48 @@ public class Jorus2DFloat {
 			array = new Array2dScalarFloat(convertedImage.getWidth(),
 					convertedImage.getHeight(), data, false);
 
-			// if (master) {
-			// viewImage(array.getDataReadOnly(), array.getWidth() + 2
-			// * array.getBorderWidth(), array.getHeight() + 2
-			// * array.getBorderHeight(), "Import");
-			// }
+			if (master) {
+				try {
+				viewImage(array.getData(), array.getWidth() + 2
+						* array.getBorderWidth(), array.getHeight() + 2
+						* array.getBorderHeight(), "Import");
+				} catch (Exception e) {
+					//ignore
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
+		Array2dScalarFloat result = null;
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITER; i++) {
-//			System.gc();
-			singleRun(array, master, "Jorus2DFloat " + i);
+			// System.gc();
+			result = singleRun(array, master, "Jorus2DFloat " + i);
 			if (px != null) {
 				px.printStatistics();
 			}
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		System.err.println("Total execution time: " + totalTime + "ms");
+		if (master) {
+			try {
+				viewImage(result.getData(), result.getWidth() + 2
+						* result.getBorderWidth(), result.getHeight() + 2
+						* result.getBorderHeight(), "Jorus2DFloat");
+			} catch (Exception e) {
+				//ignore
+			}
 
+			try {
+				saveImage(result.getData(), result.getWidth() + 2
+						* result.getBorderWidth(), result.getHeight() + 2
+						* result.getBorderHeight(), "Jorus2DFloat");
+			} catch (Exception e) {
+				// ignore
+//				e.printStackTrace();
+			}
+		}
 	}
 
 	private static void viewImage(float[] image, int width, int height,
@@ -256,6 +283,25 @@ public class Jorus2DFloat {
 		ImageViewer viewer = new ImageViewer(outputImage.getWidth(),
 				outputImage.getHeight());
 		viewer.setImage(outputImage, text);
+	}
+
+	private static void saveImage(float[] image, int width, int height,
+			String filename) throws Exception {
+		ibis.imaging4j.Image outputImage;
+		ibis.imaging4j.Image outputJpeg;
+
+		ByteBuffer buf = ByteBuffer.allocate(image.length * Float.SIZE / 8);
+		buf.asFloatBuffer().put(image);
+		outputImage = new ibis.imaging4j.Image(Format.TGFLOATGREY, width,
+				height, buf.array());
+		outputJpeg = Imaging4j.convert(Imaging4j.convert(Imaging4j.convert(
+				outputImage, Format.GREY), Format.ARGB32), Format.RGB24);
+		File file = new File(filename + ".jpg");
+		if (file.exists()) {
+			file.delete();
+		}
+		file.createNewFile();
+		Imaging4j.save(outputJpeg, file);
 	}
 
 	static class ShutDown extends Thread {
@@ -302,7 +348,7 @@ public class Jorus2DFloat {
 		try {
 			server = new Jorus2DFloat(poolName, poolSize, fileName);
 			// Install a shutdown hook that terminates Ibis.
-			 Runtime.getRuntime().addShutdownHook(new ShutDown(server));
+			Runtime.getRuntime().addShutdownHook(new ShutDown(server));
 
 			server.run();
 		} catch (Throwable e) {

@@ -46,17 +46,20 @@ public class PatGeneralizedConvolution1dRotated {
 			final PxSystem px = PxSystem.get();
 
 			try {
-				if (result.getState() != Array2d.LOCAL_PARTIAL) {
-					if (px.isRoot()) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("GENCONV SCATTER 1...");
-						}
-					}
-					px.scatter(result);
-				}
-				if (kernel.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernel);
-				}
+				result.changeStateTo(Array2d.LOCAL_PARTIAL);
+//				if (result.getState() != Array2d.LOCAL_PARTIAL) {
+//					if (px.isRoot()) {
+//						if (logger.isDebugEnabled()) {
+//							logger.debug("GENCONV SCATTER 1...");
+//						}
+//					}
+//					px.scatter(result);
+//				}
+//				if (kernel.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernel);
+//				}
+				kernel.changeStateTo(Array2d.LOCAL_FULL);
+				
 				U temp = result.clone();
 				PatSetBorder.dispatch(temp, borderWidth, borderHeight,
 						borderOperation);

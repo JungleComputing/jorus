@@ -24,8 +24,8 @@ public class JorusRotFloat {
 
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 5; // 5; // 15 for minimal
-												// measurement
+	private static final int STEP_THETA = 1; // 5; // 15 for minimal
+	// measurement
 
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
@@ -122,7 +122,7 @@ public class JorusRotFloat {
 		float[] qData = new float[source.getExtent()];
 		float[] contrastData = new float[source.getExtent()];
 		for (int i = 0; i < pData.length; i++) {
-			pData[i] = 0;//0.5f;
+			pData[i] = 0;// 0.5f;
 			qData[i] = 0.5f;// .5; // 5. / 255;
 			contrastData[i] = -.5f;
 		}
@@ -143,13 +143,14 @@ public class JorusRotFloat {
 					beginX, beginY);
 		}
 
-		Array2dScalarFloat resultImage = new Array2dScalarFloat(
-				source.getWidth(), source.getHeight(), 0, 0, true);
+		Array2dScalarFloat resultImage = new Array2dScalarFloat(source
+				.getWidth(), source.getHeight(), 0, 0, true);
 		/*** Loop over entire orientation scale-space ***/
 
 		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
-			Array2dScalarFloat rotatedImg = source.rotate(-theta, true, false, p);
-//			Array2dScalarFloat rotatedImg = source.clone();
+			Array2dScalarFloat rotatedImg = source.rotate(-theta, true, false,
+					p);
+			// Array2dScalarFloat rotatedImg = source.clone();
 
 			Array2dScalarFloat contrastIm = (Array2dScalarFloat) rotatedImg
 					.setVal(contrastPixel, false);
@@ -158,24 +159,25 @@ public class JorusRotFloat {
 				for (float sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
 
-						Array2dScalarFloat filtIm1 = rotatedImg.convGauss2d(sx, 2, 3, sy, 0, 3, false);
-						Array2dScalarFloat filtIm2 = rotatedImg.convGauss2d(sx, 0, 3, sy, 0, 3, false);
-//						filtIm1 = filtIm1.negDiv(filtIm2, true);
-						 filtIm1 = filtIm1.posDiv(filtIm2, true);
+						Array2dScalarFloat filtIm1 = rotatedImg.convGauss2d(sx,
+								2, 3, sy, 0, 3, false);
+						Array2dScalarFloat filtIm2 = rotatedImg.convGauss2d(sx,
+								0, 3, sy, 0, 3, false);
+						filtIm1 = filtIm1.negDiv(filtIm2, true);
+						// filtIm1 = filtIm1.posDiv(filtIm2, true);
 						// filtIm1 = filtIm1.absDiv(filtIm2, true);
 
-						filtIm1 = filtIm1.mulVal(
-								new PixelFloat(sx * sy), true);
+						filtIm1 = filtIm1.mulVal(new PixelFloat(sx * sy), true);
 
 						contrastIm = contrastIm.max(filtIm1, true);
 					}
 				}
 			}
 
-			Array2dScalarFloat backRotatedIm = contrastIm
-					.rotate(theta, true, false, p);
-//			Array2dScalarFloat backRotatedIm = contrastIm.clone();
-			
+			Array2dScalarFloat backRotatedIm = contrastIm.rotate(theta, true,
+					false, p);
+			// Array2dScalarFloat backRotatedIm = contrastIm.clone();
+
 			if (resultImage == null) {
 				resultImage = backRotatedIm;
 			} else {
@@ -185,14 +187,16 @@ public class JorusRotFloat {
 			// resultImage.getData();
 			// logger.debug("convUV: theta = " + theta + " finished");
 		}
-//		if (adjustSize) {
-//			resultImage = resultImage.restrict(beginX, beginY, beginX + width , beginY + height);
-//		}
+		// if (adjustSize) {
+		// resultImage = resultImage.restrict(beginX, beginY, beginX + width ,
+		// beginY + height);
+		// }
 		resultImage.createGlobalImage();
 		return resultImage;
 	}
 
-	private void singleRun(Array2dScalarFloat array, boolean master, String name) {
+	private Array2dScalarFloat singleRun(Array2dScalarFloat array,
+			boolean master, String name) {
 
 		long computing = 0;
 		long end = 0;
@@ -229,16 +233,16 @@ public class JorusRotFloat {
 			// logger.info("Processing took: " + (end - computing));
 			System.out.println("Processing took: " + (end - computing) + " ms");
 
-			Array2dScalarFloat viewImage = result;// .clone(0,0);
-			try {
-				viewImage(viewImage.getData(), viewImage.getWidth(),
-						viewImage.getHeight(), name);
-			} catch (Exception e) {
-
-				// e.printStackTrace();
-			}
+			// Array2dScalarFloat viewImage = result;// .clone(0,0);
+			// try {
+			// viewImage(viewImage.getData(), viewImage.getWidth(),
+			// viewImage.getHeight(), name);
+			// } catch (Exception e) {
+			//
+			// // e.printStackTrace();
+			// }
 		}
-
+		return result;
 	}
 
 	private void run() {
@@ -266,30 +270,46 @@ public class JorusRotFloat {
 
 			if (master) {
 				try {
-					// viewImage(array.getData(),
-					// array.getWidth() + 2 * array.getBorderWidth(),
-					// array.getHeight() + 2 * array.getBorderHeight(),
-					// "Import");
+					viewImage(array.getData(), array.getWidth() + 2
+							* array.getBorderWidth(), array.getHeight() + 2
+							* array.getBorderHeight(), "Import");
 				} catch (Exception e) {
-					e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
+		Array2dScalarFloat result = null;
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITER; i++) {
-			singleRun(array, master, "JorusRotFloat " + i);
+			result = singleRun(array, master, "JorusRotFloat " + i);
 			if (px != null) {
 				px.printStatistics();
 			}
-//			System.gc();
+			// System.gc();
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		System.err.println("Total execution time: " + totalTime + "ms");
+		if (master) {
+			try {
+				viewImage(result.getData(), result.getWidth() + 2
+						* result.getBorderWidth(), result.getHeight() + 2
+						* result.getBorderHeight(), "JorusRotFloat");
+			} catch (Exception e) {
+				// ignore
+			}
 
+			try {
+				saveImage(result.getData(), result.getWidth() + 2
+						* result.getBorderWidth(), result.getHeight() + 2
+						* result.getBorderHeight(), "JorusRotFloat");
+			} catch (Exception e) {
+				// ignore
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private static void viewImage(float[] image, int width, int height,
@@ -302,11 +322,30 @@ public class JorusRotFloat {
 
 		// outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
 		// Format.TGDOUBLEARGB), Format.ARGB32);
-		outputImage = Imaging4j.convert(
-				Imaging4j.convert(outputImage, Format.GREY), Format.ARGB32);
+		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
+				Format.GREY), Format.ARGB32);
 		ImageViewer viewer = new ImageViewer(outputImage.getWidth(),
 				outputImage.getHeight());
 		viewer.setImage(outputImage, text);
+	}
+
+	private static void saveImage(float[] image, int width, int height,
+			String filename) throws Exception {
+		ibis.imaging4j.Image outputImage;
+		ibis.imaging4j.Image outputJpeg;
+
+		ByteBuffer buf = ByteBuffer.allocate(image.length * Float.SIZE / 8);
+		buf.asFloatBuffer().put(image);
+		outputImage = new ibis.imaging4j.Image(Format.TGFLOATGREY, width,
+				height, buf.array());
+		outputJpeg = Imaging4j.convert(Imaging4j.convert(Imaging4j.convert(
+				outputImage, Format.GREY), Format.ARGB32), Format.RGB24);
+		File file = new File(filename + ".jpg");
+		if (file.exists()) {
+			file.delete();
+		}
+		file.createNewFile();
+		Imaging4j.save(outputJpeg, file);
 	}
 
 	static class ShutDown extends Thread {

@@ -102,6 +102,11 @@ public class PxSystem {
 	 private static long countGather = 0;
 	 private static long dataInGather = 0;
 	 private static long dataOutGather = 0;
+	 
+	 private static long timeAllGather = 0;
+	 private static long countAllGather = 0;
+	 private static long dataInAllGather = 0;
+	 private static long dataOutAllGather = 0;
 	
 	 private static long timeBroadcast = 0;
 	 private static long countBroadcast = 0;
@@ -414,6 +419,16 @@ public class PxSystem {
 							dataOutGather,
 							getThroughput(dataInGather + dataOutGather,
 									timeGather));
+		
+		if (countAllGather > 0)
+			System.out
+					.printf("          allGather time %15.2f usec, count %5d, dataIn %d bytes, dataOut %d bytes, TP %.2f Mbit/s\n",
+							(timeAllGather / 1000.0),
+							countAllGather,
+							dataInAllGather,
+							dataOutAllGather,
+							getThroughput(dataInAllGather + dataOutAllGather,
+									timeAllGather));
 
 		if (countBroadcast > 0)
 			System.out
@@ -450,6 +465,7 @@ public class PxSystem {
 		timeReduceToAll = 0;
 		timeScatter = 0;
 		timeGather = 0;
+		timeAllGather = 0;
 		timeBroadcast = 0;
 		timeBroadcastValue = 0;
 		timeBorderExchange = 0;
@@ -461,6 +477,7 @@ public class PxSystem {
 		countReduceToAll = 0;
 		countScatter = 0;
 		countGather = 0;
+		countAllGather = 0;
 		countBroadcast = 0;
 		countBroadcastValue = 0;
 		countBorderExchange = 0;
@@ -477,6 +494,9 @@ public class PxSystem {
 
 		dataInGather = 0;
 		dataOutGather = 0;
+		
+		dataInAllGather = 0;
+		dataOutAllGather = 0;
 
 		dataInBroadcast = 0;
 		dataOutBroadcast = 0;
@@ -779,7 +799,7 @@ public class PxSystem {
 		}
 		if (logger.isInfoEnabled()) {
 			if (iAmRoot) {
-				dataOutBroadcast += len * Double.SIZE / 8;
+				dataOutBroadcast += (nrCPUs-1) * len * Double.SIZE / 8;
 			} else {
 				dataInBroadcast += len * Double.SIZE / 8;
 			}
@@ -819,7 +839,7 @@ public class PxSystem {
 		}
 		if (logger.isInfoEnabled()) {
 			if (iAmRoot) {
-				dataOutBroadcast += len * Float.SIZE / 8;
+				dataOutBroadcast += (nrCPUs-1) * len * Float.SIZE / 8;
 			} else {
 				dataInBroadcast += len * Float.SIZE / 8;
 			}
@@ -921,7 +941,9 @@ public class PxSystem {
 				logger.debug("---");
 			}
 
-			System.arraycopy(oldPartialData, offset, newPartialData, 0, len);
+			if(a.getState() == Array2d.LOCAL_FULL) {
+				System.arraycopy(oldPartialData, offset, newPartialData, 0, len);
+			}
 
 			a.setPartialData(pWidth, pHeight, newPartialData,
 					Array2d.LOCAL_PARTIAL);
@@ -929,8 +951,14 @@ public class PxSystem {
 		}
 
 		double[] data = a.getData();
-		if (data == null || data.length != len) {
-			data = new double[len];
+		if(iAmRoot) {
+			if (data == null) {
+				throw new Exception("data array is null");
+			}
+		} else {
+			if (data == null || data.length < len) {
+				data = new double[len];
+			}	
 		}
 
 		int[] offsets = new int[nrCPUs];
@@ -953,7 +981,7 @@ public class PxSystem {
 
 		int offset = xSize * bHeight;
 		if (iAmRoot) {
-			doubleCollectives.scatter.scatter(a.getData(), offsets, sizes,
+			doubleCollectives.scatter.scatter(data, offsets, sizes,
 					data, offset, sizes[myCPU]);
 			if (logger.isInfoEnabled()) {
 				dataOutScatter += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
@@ -1007,23 +1035,25 @@ public class PxSystem {
 			if (logger.isDebugEnabled()
 					&& offset + len >= oldPartialData.length) {
 				logger.debug("---");
-				logger.debug("scatterDoubles - rank: " + myCPU);
-				logger.debug("scatterDoubles - len: " + len);
-				logger.debug("scatterDoubles - offset: " + offset);
-				logger.debug("scatterDoubles - OldLength: "
+				logger.debug("scatterFloats - rank: " + myCPU);
+				logger.debug("scatterFloats - len: " + len);
+				logger.debug("scatterFloats - offset: " + offset);
+				logger.debug("scatterFloats - OldLength: "
 						+ oldPartialData.length);
 
-				logger.debug("scatterDoubles - pWidth: " + pWidth);
-				logger.debug("scatterDoubles - pHeight: " + pHeight);
-				logger.debug("scatterDoubles - bWidth: " + bWidth);
-				logger.debug("scatterDoubles - bHeight: " + bHeight);
-				logger.debug("scatterDoubles - extent: " + extent);
-				logger.debug("scatterDoubles - state: " + a.stateString());
+				logger.debug("scatterFloats - pWidth: " + pWidth);
+				logger.debug("scatterFloats - pHeight: " + pHeight);
+				logger.debug("scatterFloats - bWidth: " + bWidth);
+				logger.debug("scatterFloats - bHeight: " + bHeight);
+				logger.debug("scatterFloats - extent: " + extent);
+				logger.debug("scatterFloats - state: " + a.stateString());
 
 				logger.debug("---");
 			}
 
-			System.arraycopy(oldPartialData, offset, newPartialData, 0, len);
+			if (a.getState() == Array2d.LOCAL_FULL) {
+				System.arraycopy(oldPartialData, offset, newPartialData, 0, len);
+			}
 
 			a.setPartialData(pWidth, pHeight, newPartialData,
 					Array2d.LOCAL_PARTIAL);
@@ -1031,9 +1061,16 @@ public class PxSystem {
 		}
 
 		float[] data = a.getData();
-		if (data == null || data.length != len) {
-			data = new float[len];
+		if(iAmRoot) {
+			if (data == null) {
+				throw new Exception("data array is null");
+			}
+		} else {
+			if (data == null || data.length < len) {
+				data = new float[len];
+			}	
 		}
+		
 
 		int[] offsets = new int[nrCPUs];
 		int[] sizes = new int[nrCPUs];
@@ -1055,7 +1092,7 @@ public class PxSystem {
 
 		int offset = xSize * bHeight;
 		if (iAmRoot) {
-			floatCollectives.scatter.scatter(a.getData(), offsets, sizes, data,
+			floatCollectives.scatter.scatter(data, offsets, sizes, data,
 					offset, sizes[myCPU]);
 			if (logger.isInfoEnabled()) {
 				dataOutScatter += (totalSize - sizes[myCPU]) * Float.SIZE / 8;
@@ -1206,7 +1243,7 @@ public class PxSystem {
 		int totalSize = 0;
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("PxSystem.gatherDoubles:");
+			logger.debug("PxSystem.gatherFloats:");
 		}
 		for (int partner = 0; partner < nrCPUs; partner++) {
 			offsets[partner] = xSize
@@ -1246,6 +1283,168 @@ public class PxSystem {
 
 	}
 
+	public <T,U extends Array2d<T,U>> void allGather(Array2d<T,U> a) throws IOException {
+
+		if (nrCPUs == 1) {
+			// On 1 CPU we simply create an alias to the same data
+			a.setData(a.getPartialWidth(), a.getPartialHeight(), a.getData(),
+					Array2d.LOCAL_FULL);
+			return;
+		}
+
+		long start = 0;
+		if (logger.isInfoEnabled()) {
+			start = System.nanoTime();
+		}
+
+		if (a instanceof Array2dDouble<?>) {
+			allGatherDoubles((Array2dDouble<?>) a);
+		} else if (a instanceof Array2dFloat<?>) {
+			allGatherFloats((Array2dFloat<?>) a);
+		} else {
+			throw new RuntimeException("Not implemented");
+		}
+		// Added -- J
+		if (logger.isInfoEnabled()) {
+			timeAllGather += System.nanoTime() - start;
+			countAllGather++;
+		}
+
+	}
+	
+	private void allGatherFloats(Array2dFloat<?> a) throws IOException {
+		// Here we assume CPU 0 (root) to have a full & valid structure
+		// which is scattered to the partial structs of all nodes. East
+		// and west borders are also communicated (not north and south).
+
+		if (a.getState() == Array2d.LOCAL_FULL) {
+			return;
+			// Everybody already has the full image
+		}
+
+		int height = a.getHeight();
+		int extent = a.getExtent();
+		int width = a.getWidth();
+		int bWidth = a.getBorderWidth();
+		int bHeight = a.getBorderHeight();
+
+		int len = (width + bWidth * 2) * (height + bHeight * 2) * extent;
+
+		float[] data = null;
+		data = new float[len];
+
+		int xSize = (width + bWidth * 2) * extent;
+
+		int[] offsets = new int[nrCPUs];
+		int[] sizes = new int[nrCPUs];
+		int totalSize = 0;
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.allGatherFloats:");
+		}
+		for (int partner = 0; partner < nrCPUs; partner++) {
+			offsets[partner] = xSize
+					* (getLclStartY(height, partner) + bHeight);
+			sizes[partner] = xSize * getPartHeight(height, partner);
+			totalSize += sizes[partner];
+			if (logger.isDebugEnabled()) {
+				logger.debug("CPU " + partner + ": offset = "
+						+ offsets[partner] + ", size = " + sizes[partner]);
+			}
+		}
+		if (logger.isDebugEnabled()) {
+			if (data != null) {
+				logger.debug("'data' size: " + data.length);
+			}
+		}
+		if (a.getData() == null) {
+			// FIXME bug??
+			throw new Error("Panic!!! no partial Data");
+		}
+
+		int offset = bHeight * xSize;
+		// int offset = 0;
+
+		if (logger.isInfoEnabled()) {
+			dataInAllGather += (totalSize - sizes[myCPU]) * Float.SIZE / 8;
+			dataOutAllGather += (totalSize - sizes[(myCPU+1) % nrCPUs]) * Float.SIZE / 8;
+		}
+		floatCollectives.allGather.allGather(a.getData(), offset, sizes[myCPU], data,
+				offsets, sizes);
+
+		a.setPartialData(width, height, data, Array2d.LOCAL_FULL);
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.allGatherFloats finished");
+		}
+	}
+	
+	private void allGatherDoubles(Array2dDouble<?> a) throws IOException {
+		// Here we assume CPU 0 (root) to have a full & valid structure
+		// which is scattered to the partial structs of all nodes. East
+		// and west borders are also communicated (not north and south).
+
+		if (a.getState() == Array2d.LOCAL_FULL) {
+			return;
+			// Everybody already has the full image
+		}
+
+		int height = a.getHeight();
+		int extent = a.getExtent();
+		int width = a.getWidth();
+		int bWidth = a.getBorderWidth();
+		int bHeight = a.getBorderHeight();
+
+		int len = (width + bWidth * 2) * (height + bHeight * 2) * extent;
+
+		double[] data = null;
+		data = new double[len];
+
+		int xSize = (width + bWidth * 2) * extent;
+
+		int[] offsets = new int[nrCPUs];
+		int[] sizes = new int[nrCPUs];
+		int totalSize = 0;
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.allGatherDoubles:");
+		}
+		for (int partner = 0; partner < nrCPUs; partner++) {
+			offsets[partner] = xSize
+					* (getLclStartY(height, partner) + bHeight);
+			sizes[partner] = xSize * getPartHeight(height, partner);
+			totalSize += sizes[partner];
+			if (logger.isDebugEnabled()) {
+				logger.debug("CPU " + partner + ": offset = "
+						+ offsets[partner] + ", size = " + sizes[partner]);	
+			}
+			
+		}
+		if (logger.isDebugEnabled()) {
+			if (data != null) {
+				logger.debug("'data' size: " + data.length);
+			}
+		}
+		if (a.getData() == null) {
+			// FIXME bug??
+			throw new Error("Panic!!! no partial Data");
+		}
+
+		int offset = bHeight * xSize;
+		// int offset = 0;
+
+		if (logger.isInfoEnabled()) {
+			dataInAllGather += (totalSize - sizes[myCPU]) * Double.SIZE / 8;
+			dataOutAllGather += (totalSize - sizes[(myCPU+1)%nrCPUs]) * Double.SIZE / 8;
+		}
+		doubleCollectives.allGather.allGather(a.getData(), offset, sizes[myCPU], data,
+				offsets, sizes);
+
+		a.setPartialData(width, height, data, Array2d.LOCAL_FULL);
+		if (logger.isDebugEnabled()) {
+			logger.debug("PxSystem.allGatherFoubles finished");
+		}
+	}
+	
 	public void borderExchange(double[] a, int width, int height, int off,
 			int stride, int ySize) throws Exception {
 
@@ -1614,7 +1813,7 @@ public class PxSystem {
 				slaves.put(world[i], channelName);
 			}
 
-			sendPort.connect(slaves, 5000, true);
+			sendPort.connect(slaves, 60000, true); //5 seconds was to tight, so try 1 minute
 			sideChannel.attachPort(sendPort);
 		} else {
 			// This is the slave node of the Jorus system

@@ -449,10 +449,10 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements
 				// FIXME just create a new data structure??
 				PxSystem.get().broadcast(this);
 				return;
-			case LOCAL_PARTIAL: // FIXME implement a gatherAll in PxSystem
-				// PxSystem.get().gatherAll(this);
-				PxSystem.get().gather(this);
-				PxSystem.get().broadcast(this);
+			case LOCAL_PARTIAL: // FIXME implement a gatherAll in PxSystem?
+				PxSystem.get().allGather(this);
+//				PxSystem.get().gather(this);
+//				PxSystem.get().broadcast(this);
 				return;
 			case LOCAL_NOT_REDUCED:
 				PxSystem.get().reduceToAll(this);
@@ -472,7 +472,8 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements
 				PxSystem.get().scatter(this);
 				return;
 			case LOCAL_NOT_REDUCED:
-				PxSystem.get().reduceToAll(this);
+				//TODO create a Reduce-Scatter?
+				PxSystem.get().reduceToRoot(this);
 				// or do the normal reduce??
 				PxSystem.get().scatter(this);
 				return;
@@ -499,17 +500,9 @@ public abstract class Array2d<T, U extends Array2d<T, U>> implements
 		return requiredReduceOp;
 	}
 
+	
 	public void createGlobalImage() throws Exception {
-		// for both global states, the image is already correct
-		if (state == NONE) {
-			throw new Exception("Image not initialized");
-		} else if (state == LOCAL_NOT_REDUCED) {
-			PxSystem.get().reduceToRoot(this);
-		} else if (state == LOCAL_PARTIAL) {
-			PxSystem.get().gather(this);
-		} else if (state == LOCAL_FULL) {
-			PxSystem.get().gather(this);
-		}
+		changeStateTo(Array2d.GLOBAL_VALID);
 	}
 
 	/** * Clones ***************************************** */

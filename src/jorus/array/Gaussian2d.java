@@ -1,5 +1,7 @@
 package jorus.array;
 
+import jorus.parallel.PxSystem;
+
 public class Gaussian2d {
 	public static Array2dScalarDouble createGaussianKernel2dDouble(double sigmaT,
 			double sigmaR, double phiDegrees, int derivativeT, double n) {
@@ -49,9 +51,12 @@ public class Gaussian2d {
 				kernelIndex++;
 			}
 		}
-
-		return new Array2dScalarDouble(2 * width + 1, 2 * height + 1,
+		Array2dScalarDouble result = new Array2dScalarDouble(2 * width + 1, 2 * height + 1,
 				kernelData, false);
+		if(PxSystem.initialized()) {
+			result.setState(Array2d.LOCAL_FULL);	
+		}
+		return result;
 	}
 
 	public static Array2dScalarFloat createGaussianKernel2dFloat(double sigmaT,
@@ -103,8 +108,12 @@ public class Gaussian2d {
 			}
 		}
 	
-		return new Array2dScalarFloat(2 * width + 1, 2 * height + 1,
+		Array2dScalarFloat result = new Array2dScalarFloat(2 * width + 1, 2 * height + 1,
 				kernelData, false);
+		if(PxSystem.initialized()) {
+			result.setState(Array2d.LOCAL_FULL);	
+		}
+		return result;
 	}
 
 }

@@ -34,12 +34,16 @@ public class PatGeneralizedConvolution1d {
 
 			// run parallel
 			try {
-				if (sourceImage.getState() != Array2d.LOCAL_PARTIAL) {
-					px.scatter(sourceImage);
-				}
-				if (kernel.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernel);
-				}
+				sourceImage.changeStateTo(Array2d.LOCAL_PARTIAL);
+
+//				if (sourceImage.getState() != Array2d.LOCAL_PARTIAL) {
+//					px.scatter(sourceImage);
+//				}
+				
+				kernel.changeStateTo(Array2d.LOCAL_FULL);
+//				if (kernel.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernel);
+//				}
 
 				PatSetBorder.dispatch(sourceImage, requiredBorderSize, 0,
 						borderOperation);

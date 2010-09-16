@@ -24,8 +24,7 @@ public class PatReduce {
 
 			final PxSystem px = PxSystem.get();
 
-			try {
-
+			try {		
 				if (destination.getState() != Array2d.LOCAL_FULL) {
 					destination.setPartialData(destination.getWidth(),
 							destination.getHeight(), destination
@@ -40,9 +39,10 @@ public class PatReduce {
 							Array2d.LOCAL_NOT_REDUCED);
 				}
 
-				if (source.getState() != Array2d.LOCAL_PARTIAL) {
-					px.scatter(source);
-				}
+				source.changeStateTo(Array2d.LOCAL_PARTIAL);
+//				if (source.getState() != Array2d.LOCAL_PARTIAL) {
+//					px.scatter(source);
+//				}
 
 				reduceOperation.init(source, true);
 				reduceOperation.doIt(destination.getData(), source.getData());

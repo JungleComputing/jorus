@@ -40,14 +40,15 @@ public class PatGeneralizedConvolution2dSeparated {
 
 			// run parallel
 			try {
-				if (source.getState() != Array2d.LOCAL_PARTIAL) {
-					if (root) {
-						if (logger.isDebugEnabled()) {
-							System.out.println("GENCONV SCATTER 1...");
-						}
-					}
-					px.scatter(source);
-				}
+				source.changeStateTo(Array2d.LOCAL_PARTIAL);
+//				if (source.getState() != Array2d.LOCAL_PARTIAL) {
+//					if (root) {
+//						if (logger.isDebugEnabled()) {
+//							System.out.println("GENCONV SCATTER 1...");
+//						}
+//					}
+//					px.scatter(source);
+//				}
 				if (numX > source.getBorderWidth()
 						|| numY > source.getBorderHeight()) {
 					dst = source.clone(numX, numY);
@@ -57,12 +58,14 @@ public class PatGeneralizedConvolution2dSeparated {
 					dst = source.clone();
 				}
 
-				if (kernelX.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernelX);
-				}
-				if (kernelY.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernelY);
-				}
+//				if (kernelX.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernelX);
+//				}
+				kernelX.changeStateTo(Array2d.LOCAL_FULL);
+//				if (kernelY.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernelY);
+//				}
+				kernelY.changeStateTo(Array2d.LOCAL_FULL);
 
 				PatSetBorder.dispatch(dst, numX, 0, sbo);
 				U tmp = dst.shallowClone();

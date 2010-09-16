@@ -40,8 +40,8 @@ public class PatUpo {
 	 * return dst; }
 	 */
 
-	public static <T,U extends Array2d<T,U>> U dispatch(U s1, boolean inplace,
-			Upo<T> upo) {
+	public static <T, U extends Array2d<T, U>> U dispatch(U s1,
+			boolean inplace, Upo<T> upo) {
 		U dst = s1;
 
 		if (PxSystem.initialized()) { // run parallel
@@ -50,32 +50,26 @@ public class PatUpo {
 
 			try {
 
-				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
+				if (s1.getState() != Array2d.NONE) {
+					s1.changeStateTo(Array2d.LOCAL_PARTIAL);
+					// px.scatter(dst);
 
-					// The data structure has not been distibuted yet, or is no
-					// longer valid
+				} else {
+					// Added -- J
+					//
+					// A hack that assumes dst is a target data structure
+					// which we do not need to
+					// scatter. We only initialize the local partitions.
 
-					if (s1.getState() != Array2d.NONE) {
+					final int pHeight = px.getPartHeight(s1.getHeight(), px
+							.myCPU());
 
-						px.scatter(dst);
+					final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
+							* (pHeight + s1.getBorderHeight() * 2)
+							* s1.getExtent();
 
-					} else {
-						// Added -- J
-						//
-						// A hack that assumes dst is a target data structure
-						// which we do not need to
-						// scatter. We only initialize the local partitions.
-
-						final int pHeight = px.getPartHeight(s1.getHeight(),
-								px.myCPU());
-
-						final int length = (s1.getWidth() + s1.getBorderWidth() * 2)
-								* (pHeight + s1.getBorderHeight() * 2)
-								* s1.getExtent();
-
-						s1.setPartialData(s1.getWidth(), pHeight, s1
-								.createDataArray(length), Array2d.LOCAL_PARTIAL);
-					}
+					s1.setPartialData(s1.getWidth(), pHeight, s1
+							.createDataArray(length), Array2d.LOCAL_PARTIAL);
 				}
 
 				if (!inplace)

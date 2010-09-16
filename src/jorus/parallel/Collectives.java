@@ -12,6 +12,7 @@ public class Collectives<T> {
     protected final Broadcast<T> broadcast;
     protected final Scatter<T> scatter;
     protected final Gather<T> gather;
+    protected final AllGather<T> allGather;
     protected final ReduceToRoot<T> reduceToRoot;
     protected final ReduceToAll<T> reduceToAll;
  
@@ -41,6 +42,13 @@ public class Collectives<T> {
         	logger.debug("     using " + type + " gather for " + c.getName());
         }
         gather = (Gather<T>) Collective.loadImplementation(name, s, c);
+        
+        type = p.getProperty("jorus.allGather", "Ring");
+        name = "jorus.parallel.collectives." + type + "AllGather";
+        if(logger.isDebugEnabled()) {
+        	logger.debug("     using " + type + " allGather for " + c.getName());
+        }
+        allGather = (AllGather<T>) Collective.loadImplementation(name, s, c);
         
         type = p.getProperty("jorus.reduceToRoot", "Flat");
         name = "jorus.parallel.collectives." + type + "ReduceToRoot";

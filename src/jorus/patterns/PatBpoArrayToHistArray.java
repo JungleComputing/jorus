@@ -26,21 +26,23 @@ public class PatBpoArrayToHistArray {
 			double[] dst = new double[nBins];
 
 			try {
-				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
-					if (root)
-						System.out.println("BPO2HIST SCATTER 1...");
-					px.scatter(s1);
-				}
+				s1.changeStateTo(Array2d.LOCAL_PARTIAL);
+//				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
+//					if (root)
+//						System.out.println("BPO2HIST SCATTER 1...");
+//					px.scatter(s1);
+//				}
 
 				for (int i = 0; i < a2.length; i++) {
 
 					U s2 = a2[i];
 
-					if (s2.getState() != Array2d.LOCAL_PARTIAL) {
-						if (root)
-							System.out.println("BPO2HIST SCATTER 2...");
-						px.scatter(s2);
-					}
+					s2.changeStateTo(Array2d.LOCAL_PARTIAL);
+//					if (s2.getState() != Array2d.LOCAL_PARTIAL) {
+//						if (root)
+//							System.out.println("BPO2HIST SCATTER 2...");
+//						px.scatter(s2);
+//					}
 
 					bpo.init(s1, s2, true);
 

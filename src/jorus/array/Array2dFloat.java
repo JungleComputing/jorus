@@ -61,13 +61,13 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 	 */
 	private static final long serialVersionUID = -6859296329319418412L;
 	
-	private static long createCounter = 0; // TODO debug counter
+//	private static long createCounter = 0; // TODO debug counter
 
-	public static long getAndResetcreateCounter() {
-		long tmp = createCounter;
-		createCounter = 0;
-		return tmp;
-	}
+//	public static long getAndResetcreateCounter() {
+//		long tmp = createCounter;
+//		createCounter = 0;
+//		return tmp;
+//	}
 
 	/*** Public Methods ***********************************************/
 
@@ -468,21 +468,26 @@ public abstract class Array2dFloat<U extends Array2dFloat<U>> extends Array2d<fl
 		}
 
 		/*** Create result image and translation vector ***/
-		U destination;
+//		U destination;
+		int newWidth, newHeight;
 		if (adjustSize) {
 			double[][] specs = calculateDimensionsandTranslationVector(forwardsTransformationMatrix);
-			destination = createCompatibleArray((int) specs[1][0],
-					(int) specs[1][1], 0, 0);
+			newWidth = (int) specs[1][0];
+			newHeight= (int) specs[1][1];
+//			destination = createCompatibleArray((int) specs[1][0],
+//					(int) specs[1][1], 0, 0);
 			translationVector = specs[0];
 		} else {
-			destination = shallowClone();
+//			destination = shallowClone();
+			newWidth = getWidth();
+			newHeight= getHeight();
 			translationVector = new double[3];
 		}
 
 		Geometric2dFloat geometricOperation = new Geometric2dFloat(
 				backwardsTransformationMatrix, translationVector,
 				background.getValue(), linearInterpolation);
-		return PatGeometric2d.dispatch(destination, this, geometricOperation);
+		return PatGeometric2d.dispatch(this, geometricOperation, newWidth, newHeight);
 	}
 
 	/*

@@ -24,14 +24,8 @@ public class PatBpo {
 			final PxSystem px = PxSystem.get();
 
 			try {
-
-				if (s1.getState() != Array2d.LOCAL_PARTIAL) {
-					px.scatter(s1);
-				}
-
-				if (s2.getState() != Array2d.LOCAL_PARTIAL) {
-					px.scatter(s2);
-				}
+				s1.changeStateTo(Array2d.LOCAL_PARTIAL);
+				s2.changeStateTo(Array2d.LOCAL_PARTIAL);
 
 				if (!inplace) {
 					dst = s1.clone();
@@ -43,7 +37,6 @@ public class PatBpo {
 				System.err.println("Failed to perform operation!");
 				e.printStackTrace(System.err);
 			}
-
 		} else {
 			if (s1.getState() == Array2d.NONE) {
 				// Added -- J

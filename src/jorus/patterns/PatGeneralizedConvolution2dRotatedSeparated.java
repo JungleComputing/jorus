@@ -57,20 +57,25 @@ public class PatGeneralizedConvolution2dRotatedSeparated {
 			final boolean root = px.isRoot();
 
 			try {
-				if (dst.getState() != Array2d.LOCAL_PARTIAL) {
-					if (root) {
-						if(logger.isDebugEnabled()) {
-							logger.debug("GENCONV SCATTER 1...");
-						}
-					}
-					px.scatter(dst);
-				}
-				if (kernelU.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernelU);
-				}
-				if (kernelV.getState() != Array2d.LOCAL_FULL) {
-					px.broadcast(kernelV);
-				}
+				dst.changeStateTo(Array2d.LOCAL_PARTIAL);
+//				if (dst.getState() != Array2d.LOCAL_PARTIAL) {
+//					if (root) {
+//						if(logger.isDebugEnabled()) {
+//							logger.debug("GENCONV SCATTER 1...");
+//						}
+//					}
+//					px.scatter(dst);
+//				}
+//				if (kernelU.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernelU);
+//				}
+				kernelU.changeStateTo(Array2d.LOCAL_FULL);
+				
+//				if (kernelV.getState() != Array2d.LOCAL_FULL) {
+//					px.broadcast(kernelV);
+//				}
+				kernelV.changeStateTo(Array2d.LOCAL_FULL);
+				
 				PatSetBorder.dispatch(dst, borderWidthU, borderHeightU, borderOperation);
 				U tmp = dst.shallowClone();
 				convolutionOperation.init(dst, kernelU, phiRad, true);
