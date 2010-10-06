@@ -21,9 +21,13 @@ public class JorusUVFloat {
 
 	private static final int ITER = 10; // number of iterations
 
+//	private static final int MIN_THETA = 0;
+//	private static final int MAX_THETA = 180;
+//	private static final int STEP_THETA = 1; // 5// 15 for minimal measurement
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 1; // 5// 15 for minimal measurement
+	private static final int ROTATIONS = 180; 
+	private static final double ROT_STEP = ((double)(MAX_THETA - MIN_THETA))/(double)ROTATIONS;
 
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
@@ -118,7 +122,9 @@ public class JorusUVFloat {
 				.getWidth(), source.getHeight(), 0, 0, true);
 		/*** Loop over entire orientation scale-space ***/
 
-		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+//		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+		for (int rot = 0; rot < ROTATIONS; rot++) {
+			double theta = MIN_THETA + rot * ROT_STEP;
 			Array2dScalarFloat filtIm1 = null;
 			Array2dScalarFloat filtIm2 = null;
 

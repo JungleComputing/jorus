@@ -9,7 +9,6 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import jorus.array.Array2dFloat;
 import jorus.array.Array2dScalarFloat;
 import jorus.parallel.PxSystem;
 import jorus.pixel.PixelFloat;
@@ -17,29 +16,29 @@ import jorus.pixel.PixelFloat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Jorus2DFloat {
+
+public class JorusRotPPFloat {
+
+	private static final boolean ADJUSTSIZE = false;
 
 	private static final int ITER = 10; // number of iterations
 
-	// private static final int MIN_THETA = 0;
-	// private static final int MAX_THETA = 180;
-	// private static final int STEP_THETA = 1; // 5; // 15 for minimal
+//	private static final int MIN_THETA = 0;
+//	private static final int MAX_THETA = 160;
+//	private static final int STEP_THETA = 10; // 5; // 15 for minimal
 	// measurement
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int ROTATIONS = 180;
-	private static final double ROT_STEP = ((double) (MAX_THETA - MIN_THETA))
-			/ (double) ROTATIONS;
+	private static final int ROTATIONS = 180; 
+	private static final double ROT_STEP = ((double)(MAX_THETA - MIN_THETA))/(double)ROTATIONS;
 
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
-	private static final float STEP_SX = 1;// 4; // 1; // 2.0 for minimal
-	// measurement
+	private static final float STEP_SX = 1; // 1; // 2.0 for minimal measurement
 
 	private static final float MIN_SY = 3; // 3.0 for minimal measurement
 	private static final float MAX_SY = 9; // 11.0 for minimal measurement
-	private static final float STEP_SY = 2;// 9; //2; // 4.0 for minimal
-	// measurement
+	private static final float STEP_SY = 2; // 2; // 4.0 for minimal measurement
 
 	private static final boolean Fixed = true; // Fixed MAX_SX: YES/NO
 
@@ -48,11 +47,11 @@ public class Jorus2DFloat {
 	}
 
 	private static float Step_sx(float sx) {
-		return (Fixed ? STEP_SX : (sx / 2));
+		return (Fixed ? STEP_SX : (sx / 2f));
 	}
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(Jorus2DFloat.class);
+			.getLogger(JorusRotPPFloat.class);
 
 	private final PxSystem px;
 	private final boolean master;
@@ -60,7 +59,7 @@ public class Jorus2DFloat {
 	private boolean ended = false;
 	File file;
 
-	private Jorus2DFloat(String poolName, String poolSize, String fileName)
+	private JorusRotPPFloat(String poolName, String poolSize, String fileName)
 			throws Exception {
 		file = new File(fileName);
 
@@ -118,44 +117,99 @@ public class Jorus2DFloat {
 		return (angle / 180.) * Math.PI;
 	}
 
-	Array2dScalarFloat conv2D(Array2dScalarFloat source) throws Exception {
-		float sx, sy;
+	Array2dScalarFloat convRot(Array2dScalarFloat source, boolean adjustSize)
+			throws Exception {
+		int newSize = 0, beginX = 0, beginY = 0;
+		int width = source.getWidth();
+		int height = source.getHeight();
+
+		float[] pData = new float[source.getExtent()];
+		float[] qData = new float[source.getExtent()];
+		float[] contrastData = new float[source.getExtent()];
+		for (int i = 0; i < pData.length; i++) {
+			pData[i] = 0;// 0.5f;
+			qData[i] = 0.5f;// .5; // 5. / 255;
+			contrastData[i] = -.5f;
+		}
+		PixelFloat p = new PixelFloat(pData);
+		PixelFloat q = new PixelFloat(qData);
+		PixelFloat contrastPixel = new PixelFloat(contrastData);
+
+		// set border when we want to adjust the size
+		if (adjustSize) {
+
+			newSize = (int) (Math.sqrt((double) (width * width + height
+					* height))) + 1; // length of the diagonal
+			// rounded upwards
+			beginX = (width - newSize) / 2;
+			beginY = (height - newSize) / 2;
+
+			source = (Array2dScalarFloat) source.extend(newSize, newSize, q,
+					beginX, beginY);
+		}
+
 		Array2dScalarFloat resultImage = new Array2dScalarFloat(source
 				.getWidth(), source.getHeight(), 0, 0, true);
 		/*** Loop over entire orientation scale-space ***/
 
-		// for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+//		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
 		for (int rot = 0; rot < ROTATIONS; rot++) {
 			double theta = MIN_THETA + rot * ROT_STEP;
-			Array2dScalarFloat filtIm1 = null;
-			Array2dScalarFloat filtIm2 = null;
+			Array2dScalarFloat rotatedImg = source.rotate(-theta, true, false,
+					p);
+			// Array2dScalarFloat rotatedImg = source.clone();
 
-			for (sy = MIN_SY; sy < MAX_SY; sy += STEP_SY) {
-				for (sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
+			Array2dScalarFloat contrastIm = (Array2dScalarFloat) rotatedImg
+					.setVal(contrastPixel, false);
+
+			for (float sy = MIN_SY; sy < MAX_SY; sy += STEP_SY) {
+				for (float sx = MIN_SX; sx < Max_sx(sy); sx += Step_sx(sx)) {
 					if (sx != sy) {
-						filtIm1 = source.convGauss1x2d(sx, sy, -theta, 2, 3);
-						filtIm2 = source.convGauss1x2d(sx, sy, -theta, 0, 3);
 
-						//						
-						Array2dScalarFloat contrastIm = filtIm1.posDiv(filtIm2,
-								true);
-						// Array2dScalarFloat contrastIm = filtIm1.div(filtIm2,
-						// true);
-						// Array2dScalarFloat contrastIm =
-						// filtIm1.posDiv(filtIm2, true);
+						Array2dScalarFloat filtIm1 = rotatedImg.convGauss2d(sx,
+								2, 3, sy, 0, 3, false);
+						Array2dScalarFloat filtIm2 = rotatedImg.convGauss2d(sx,
+								0, 3, sy, 0, 3, false);
+						filtIm1 = filtIm1.negDiv(filtIm2, true);
+						// filtIm1 = filtIm1.posDiv(filtIm2, true);
+						// filtIm1 = filtIm1.absDiv(filtIm2, true);
 
-						// Array2dScalarFloat contrastIm = filtIm1;
+						filtIm1 = filtIm1.mulVal(new PixelFloat(sx * sy), true);
 
-						contrastIm = contrastIm.mulVal(new PixelFloat(sx * sy),
-								true);
-
-						resultImage = resultImage.max(contrastIm, true);
+						contrastIm = contrastIm.max(filtIm1, true);
 					}
 				}
 			}
+
+			Array2dScalarFloat backRotatedIm = contrastIm.rotate(theta, true,
+					false, p);
+			// Array2dScalarFloat backRotatedIm = contrastIm.clone();
+
+			if (resultImage == null) {
+				resultImage = backRotatedIm;
+			} else {
+				resultImage = (Array2dScalarFloat) resultImage.max(
+						backRotatedIm, true);
+			}
 			// resultImage.getData();
-			// logger.debug("conv2D: theta = " + theta + " finished");
+			// logger.debug("convUV: theta = " + theta + " finished");
 		}
+		// if (adjustSize) {
+		// resultImage = resultImage.restrict(beginX, beginY, beginX + width ,
+		// beginY + height);
+		// }
+		// Do post-processing
+		for(int i = 1; i <= 3; i++) {
+			// i is the scale
+//			int i = 1;
+//			Array2dScalarFloat deriv2 = resultImage.convGauss2d(i, 4, 9, i, 4, 9);
+			Array2dScalarFloat deriv2 = resultImage.convGauss1x2d(i, i, 0, 2, 9);
+			resultImage = resultImage.sub(deriv2, true);
+		}
+		resultImage = resultImage.convGauss1x2d(2, 2, 0, 2, 5);
+		
+		
+		
 		resultImage.createGlobalImage();
 		return resultImage;
 	}
@@ -183,7 +237,7 @@ public class Jorus2DFloat {
 		// FIXME do line detection here
 		Array2dScalarFloat result = null;
 		try {
-			result = conv2D(array);
+			result = convRot(array, ADJUSTSIZE);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -192,23 +246,20 @@ public class Jorus2DFloat {
 
 		if (master) {
 			// logger.debug("Computation done");
-			if (logger.isInfoEnabled()) {
+			if(logger.isInfoEnabled()) {
 				logger.info("Computation done");
 			}
 			// FIXME create output here
 
 			// logger.info("Processing took: " + (end - computing));
-			// System.out.println("Processing took: " + (end - computing) +
-			// " ms");
-			
-//			System.out.println("Processing took: "
-//					+ ((double) (end - computing)) / 1000 + " s");
+//			System.out.println("Processing took: " + (end - computing) + " ms");
+//			System.out.println("Processing took: " + ((double) (end - computing)) / 1000 + " s");
 			System.out.println(((double) (end - computing)) / 1000);
 
 			// Array2dScalarFloat viewImage = result;// .clone(0,0);
 			// try {
-			// viewImage(viewImage.getData(), viewImage.getWidth(), viewImage
-			// .getHeight(), name);
+			// viewImage(viewImage.getData(), viewImage.getWidth(),
+			// viewImage.getHeight(), name);
 			// } catch (Exception e) {
 			//
 			// // e.printStackTrace();
@@ -246,7 +297,7 @@ public class Jorus2DFloat {
 							* array.getBorderWidth(), array.getHeight() + 2
 							* array.getBorderHeight(), "Import");
 				} catch (Exception e) {
-					// ignore
+					// e.printStackTrace();
 				}
 			}
 		} catch (Exception e) {
@@ -256,21 +307,21 @@ public class Jorus2DFloat {
 		Array2dScalarFloat result = null;
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITER; i++) {
-			// System.gc();
-			result = singleRun(array, master, "Jorus2DFloat " + i);
+			result = singleRun(array, master, "JorusRotFloat " + i);
 			if (px != null) {
 				px.printStatistics();
 			}
+			// System.gc();
 		}
 		long totalTime = System.currentTimeMillis() - start;
-		if (logger.isInfoEnabled()) {
+		if(logger.isInfoEnabled()) {
 			logger.info("Total execution time: " + totalTime + "ms");
 		}
 		if (master) {
 			try {
 				viewImage(result.getData(), result.getWidth() + 2
 						* result.getBorderWidth(), result.getHeight() + 2
-						* result.getBorderHeight(), "Jorus2DFloat");
+						* result.getBorderHeight(), "JorusRotFloat");
 			} catch (Exception e) {
 				// ignore
 			}
@@ -278,10 +329,10 @@ public class Jorus2DFloat {
 			try {
 				saveImage(result.getData(), result.getWidth() + 2
 						* result.getBorderWidth(), result.getHeight() + 2
-						* result.getBorderHeight(), "Jorus2DFloat");
+						* result.getBorderHeight(), "JorusRotFloat");
 			} catch (Exception e) {
 				// ignore
-				// e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 	}
@@ -295,7 +346,7 @@ public class Jorus2DFloat {
 				height, buf.array());
 
 		// outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
-		// Format.TGFLOATARGB), Format.ARGB32);
+		// Format.TGDOUBLEARGB), Format.ARGB32);
 		outputImage = Imaging4j.convert(Imaging4j.convert(outputImage,
 				Format.GREY), Format.ARGB32);
 		ImageViewer viewer = new ImageViewer(outputImage.getWidth(),
@@ -323,9 +374,9 @@ public class Jorus2DFloat {
 	}
 
 	static class ShutDown extends Thread {
-		final Jorus2DFloat server;
+		final JorusRotPPFloat server;
 
-		ShutDown(Jorus2DFloat server) {
+		ShutDown(JorusRotPPFloat server) {
 			this.server = server;
 		}
 
@@ -353,10 +404,8 @@ public class Jorus2DFloat {
 			fileName = args[2];
 		}
 
-		if (logger.isInfoEnabled()) {
-			logger.info("Image processing server starting in pool \""
-					+ poolName + "\" of size " + poolSize);
-		}
+		logger.info("Image processing server starting in pool \"" + poolName
+				+ "\" of size " + poolSize);
 
 		if (poolName == null || poolSize == null) {
 			System.err
@@ -364,9 +413,9 @@ public class Jorus2DFloat {
 			System.exit(1);
 		}
 
-		Jorus2DFloat server = null;
+		JorusRotPPFloat server = null;
 		try {
-			server = new Jorus2DFloat(poolName, poolSize, fileName);
+			server = new JorusRotPPFloat(poolName, poolSize, fileName);
 			// Install a shutdown hook that terminates Ibis.
 			Runtime.getRuntime().addShutdownHook(new ShutDown(server));
 

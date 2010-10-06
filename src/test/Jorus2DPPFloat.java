@@ -17,20 +17,18 @@ import jorus.pixel.PixelFloat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Jorus2DFloat {
+public class Jorus2DPPFloat {
 
 	private static final int ITER = 10; // number of iterations
 
-	// private static final int MIN_THETA = 0;
-	// private static final int MAX_THETA = 180;
-	// private static final int STEP_THETA = 1; // 5; // 15 for minimal
-	// measurement
+//	private static final int MIN_THETA = 0;
+//	private static final int MAX_THETA = 180;
+//	private static final int STEP_THETA = 1; // 5; // 15 for minimal measurement
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int ROTATIONS = 180;
-	private static final double ROT_STEP = ((double) (MAX_THETA - MIN_THETA))
-			/ (double) ROTATIONS;
-
+	private static final int ROTATIONS = 180; 
+	private static final double ROT_STEP = ((double)(MAX_THETA - MIN_THETA))/(double)ROTATIONS;
+	
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
 	private static final float STEP_SX = 1;// 4; // 1; // 2.0 for minimal
@@ -52,7 +50,7 @@ public class Jorus2DFloat {
 	}
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(Jorus2DFloat.class);
+			.getLogger(Jorus2DPPFloat.class);
 
 	private final PxSystem px;
 	private final boolean master;
@@ -60,7 +58,7 @@ public class Jorus2DFloat {
 	private boolean ended = false;
 	File file;
 
-	private Jorus2DFloat(String poolName, String poolSize, String fileName)
+	private Jorus2DPPFloat(String poolName, String poolSize, String fileName)
 			throws Exception {
 		file = new File(fileName);
 
@@ -124,7 +122,7 @@ public class Jorus2DFloat {
 				.getWidth(), source.getHeight(), 0, 0, true);
 		/*** Loop over entire orientation scale-space ***/
 
-		// for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+//		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
 		for (int rot = 0; rot < ROTATIONS; rot++) {
 			double theta = MIN_THETA + rot * ROT_STEP;
 			Array2dScalarFloat filtIm1 = null;
@@ -156,12 +154,22 @@ public class Jorus2DFloat {
 			// resultImage.getData();
 			// logger.debug("conv2D: theta = " + theta + " finished");
 		}
+		// Do post-processing
+		for(int i = 1; i <= 3; i++) {
+			// i is the scale
+//			int i = 1;
+//			Array2dScalarFloat deriv2 = resultImage.convGauss2d(i, 4, 9, i, 4, 9);
+			Array2dScalarFloat deriv2 = resultImage.convGauss1x2d(i, i, 0, 2, 9);
+			resultImage = resultImage.sub(deriv2, true);
+		}
+		resultImage = resultImage.convGauss1x2d(2, 2, 0, 2, 5);
+		
+		
 		resultImage.createGlobalImage();
 		return resultImage;
 	}
 
-	private Array2dScalarFloat singleRun(Array2dScalarFloat array,
-			boolean master, String name) {
+	private Array2dScalarFloat singleRun(Array2dScalarFloat array, boolean master, String name) {
 
 		long computing = 0;
 		long end = 0;
@@ -191,28 +199,21 @@ public class Jorus2DFloat {
 		end = System.currentTimeMillis();
 
 		if (master) {
-			// logger.debug("Computation done");
-			if (logger.isInfoEnabled()) {
-				logger.info("Computation done");
-			}
+			logger.info("Computation done");
+//			System.out.println("Computation done");
 			// FIXME create output here
 
 			// logger.info("Processing took: " + (end - computing));
-			// System.out.println("Processing took: " + (end - computing) +
-			// " ms");
-			
-//			System.out.println("Processing took: "
-//					+ ((double) (end - computing)) / 1000 + " s");
+//			System.out.println("Processing took: " + ((double)(end - computing))/1000 + " s");
 			System.out.println(((double) (end - computing)) / 1000);
-
-			// Array2dScalarFloat viewImage = result;// .clone(0,0);
-			// try {
-			// viewImage(viewImage.getData(), viewImage.getWidth(), viewImage
-			// .getHeight(), name);
-			// } catch (Exception e) {
-			//
-			// // e.printStackTrace();
-			// }
+//			Array2dScalarFloat viewImage = result;// .clone(0,0);
+//			try {
+//				viewImage(viewImage.getData(), viewImage.getWidth(), viewImage
+//						.getHeight(), name);
+//			} catch (Exception e) {
+//
+//				// e.printStackTrace();
+//			}
 		}
 		return result;
 	}
@@ -242,11 +243,11 @@ public class Jorus2DFloat {
 
 			if (master) {
 				try {
-					viewImage(array.getData(), array.getWidth() + 2
-							* array.getBorderWidth(), array.getHeight() + 2
-							* array.getBorderHeight(), "Import");
+				viewImage(array.getData(), array.getWidth() + 2
+						* array.getBorderWidth(), array.getHeight() + 2
+						* array.getBorderHeight(), "Import");
 				} catch (Exception e) {
-					// ignore
+					//ignore
 				}
 			}
 		} catch (Exception e) {
@@ -263,16 +264,14 @@ public class Jorus2DFloat {
 			}
 		}
 		long totalTime = System.currentTimeMillis() - start;
-		if (logger.isInfoEnabled()) {
-			logger.info("Total execution time: " + totalTime + "ms");
-		}
+		logger.info("Total execution time: " + totalTime + "ms");
 		if (master) {
 			try {
 				viewImage(result.getData(), result.getWidth() + 2
 						* result.getBorderWidth(), result.getHeight() + 2
 						* result.getBorderHeight(), "Jorus2DFloat");
 			} catch (Exception e) {
-				// ignore
+				//ignore
 			}
 
 			try {
@@ -281,7 +280,7 @@ public class Jorus2DFloat {
 						* result.getBorderHeight(), "Jorus2DFloat");
 			} catch (Exception e) {
 				// ignore
-				// e.printStackTrace();
+//				e.printStackTrace();
 			}
 		}
 	}
@@ -323,9 +322,9 @@ public class Jorus2DFloat {
 	}
 
 	static class ShutDown extends Thread {
-		final Jorus2DFloat server;
+		final Jorus2DPPFloat server;
 
-		ShutDown(Jorus2DFloat server) {
+		ShutDown(Jorus2DPPFloat server) {
 			this.server = server;
 		}
 
@@ -353,10 +352,8 @@ public class Jorus2DFloat {
 			fileName = args[2];
 		}
 
-		if (logger.isInfoEnabled()) {
-			logger.info("Image processing server starting in pool \""
-					+ poolName + "\" of size " + poolSize);
-		}
+		logger.info("Image processing server starting in pool \"" + poolName
+				+ "\" of size " + poolSize);
 
 		if (poolName == null || poolSize == null) {
 			System.err
@@ -364,9 +361,9 @@ public class Jorus2DFloat {
 			System.exit(1);
 		}
 
-		Jorus2DFloat server = null;
+		Jorus2DPPFloat server = null;
 		try {
-			server = new Jorus2DFloat(poolName, poolSize, fileName);
+			server = new Jorus2DPPFloat(poolName, poolSize, fileName);
 			// Install a shutdown hook that terminates Ibis.
 			Runtime.getRuntime().addShutdownHook(new ShutDown(server));
 

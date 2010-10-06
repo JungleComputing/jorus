@@ -22,10 +22,14 @@ public class JorusRotFloat {
 
 	private static final int ITER = 10; // number of iterations
 
+//	private static final int MIN_THETA = 0;
+//	private static final int MAX_THETA = 160;
+//	private static final int STEP_THETA = 10; // 5; // 15 for minimal
+//	// measurement
 	private static final int MIN_THETA = 0;
 	private static final int MAX_THETA = 180;
-	private static final int STEP_THETA = 1; // 5; // 15 for minimal
-	// measurement
+	private static final int ROTATIONS = 180; 
+	private static final double ROT_STEP = ((double)(MAX_THETA - MIN_THETA))/(double)ROTATIONS;
 
 	private static final float MIN_SX = 1; // 1.0 for minimal measurement
 	private static final float MAX_SX = 4; // 5.0 for minimal measurement
@@ -147,7 +151,9 @@ public class JorusRotFloat {
 				.getWidth(), source.getHeight(), 0, 0, true);
 		/*** Loop over entire orientation scale-space ***/
 
-		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+//		for (int theta = MIN_THETA; theta < MAX_THETA; theta += STEP_THETA) {
+		for (int rot = 0; rot < ROTATIONS; rot++) {
+			double theta = MIN_THETA + rot * ROT_STEP;
 			Array2dScalarFloat rotatedImg = source.rotate(-theta, true, false,
 					p);
 			// Array2dScalarFloat rotatedImg = source.clone();
@@ -227,11 +233,16 @@ public class JorusRotFloat {
 
 		if (master) {
 			// logger.debug("Computation done");
-			System.out.println("Computation done");
+			if(logger.isInfoEnabled()) {
+				logger.info("Computation done");
+			}
 			// FIXME create output here
 
 			// logger.info("Processing took: " + (end - computing));
-			System.out.println("Processing took: " + (end - computing) + " ms");
+//			System.out.println("Processing took: " + (end - computing) + " ms");
+//			System.out.println("Processing took: "
+//					+ ((double) (end - computing)) / 1000 + " s");
+			System.out.println(((double) (end - computing)) / 1000);
 
 			// Array2dScalarFloat viewImage = result;// .clone(0,0);
 			// try {
@@ -291,7 +302,9 @@ public class JorusRotFloat {
 			// System.gc();
 		}
 		long totalTime = System.currentTimeMillis() - start;
-		System.err.println("Total execution time: " + totalTime + "ms");
+		if(logger.isInfoEnabled()) {
+			logger.info("Total execution time: " + totalTime + "ms");
+		}
 		if (master) {
 			try {
 				viewImage(result.getData(), result.getWidth() + 2
